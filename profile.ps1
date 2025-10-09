@@ -16,6 +16,20 @@ Import-Module Terminal-Icons -ErrorAction SilentlyContinue
 # Import posh-git - Git integration for prompt
 Import-Module posh-git -ErrorAction SilentlyContinue
 
+# Import PSFzf - Fuzzy finder for files, history, git (Ctrl+R, Ctrl+T)
+Import-Module PSFzf -ErrorAction SilentlyContinue
+if (Get-Module PSFzf) {
+    # Ctrl+R - Command history search
+    Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+    # Enable git integration
+    Set-PsFzfOption -EnableAliasFuzzyGitStatus
+}
+
+# zoxide - Smart directory jumping (z command)
+if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+    Invoke-Expression (& { (zoxide init powershell | Out-String) })
+}
+
 # ============================================
 # ŁADOWANIE MODUŁÓW
 # ============================================
