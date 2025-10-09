@@ -38,11 +38,11 @@ pwsh-profile/
 
 ## ✨ Features
 
-- ✅ **Linux-style aliases** - `ls`, `grep`, `cat`, `touch`, `which`, ...
+- ✅ **Linux-style aliases** - `ls -la`, `grep`, `cat`, `touch`, `which`, ...
 - ✅ **Git shortcuts** - `gs`, `ga`, `gc "msg"`, `gp`, `gl`
 - ✅ **PSReadLine** - Fish/Zsh-like autocompletion
 - ✅ **Oh My Posh** - Beautiful prompt
-- ✅ **Oh My Stats** - System stats on startup
+- ✅ **[Oh My Stats](https://github.com/zentala/oh-my-stats)** - System stats on startup
 - ✅ **Quick navigation** - `..`, `...`, `....`, `mkcd`
 
 ## 🛠️ Requirements

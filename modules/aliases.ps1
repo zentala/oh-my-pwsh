@@ -3,9 +3,7 @@
 # ============================================
 
 # Podstawowe komendy
-Set-Alias ll Get-ChildItem
-Set-Alias ls Get-ChildItem
-Set-Alias la 'Get-ChildItem -Force'
+# Note: ls, ll, la are defined as functions in functions.ps1 to support flags
 Set-Alias grep Select-String
 Set-Alias which Get-Command
 Set-Alias whereis Get-Command

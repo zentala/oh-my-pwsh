@@ -2,6 +2,22 @@
 # FUNKCJE POMOCNICZE
 # ============================================
 
+# Linux-style ls commands with flags support
+function ls {
+    param([Parameter(ValueFromRemainingArguments)]$args)
+    Get-ChildItem @args
+}
+
+function ll {
+    param([Parameter(ValueFromRemainingArguments)]$args)
+    Get-ChildItem @args
+}
+
+function la {
+    param([Parameter(ValueFromRemainingArguments)]$args)
+    Get-ChildItem -Force @args
+}
+
 # Funkcje emulujące komendy Linux
 function chmod {
     Write-Host "chmod nie działa na Windows - użyj: icacls lub Properties > Security" -ForegroundColor Yellow
