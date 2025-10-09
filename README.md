@@ -26,26 +26,56 @@ A modern, powerful PowerShell profile for Windows 11 with all the tools you need
 
 ```
 pwsh-profile/
-├── profile.ps1              # Main loader file
+├── profile.ps1                    # Main loader file
 ├── modules/
-│   ├── aliases.ps1          # Linux-style aliases (ls, grep, cat, ...)
-│   ├── functions.ps1        # Helper functions (touch, mkcd, .., ...)
-│   ├── git-helpers.ps1      # Git shortcuts (gs, ga, gc, gp, ...)
-│   ├── psreadline.ps1       # PSReadLine configuration
-│   └── environment.ps1      # PATH & environment variables
-├── scripts/                 # Your private scripts
-└── themes/                  # Oh My Posh themes (optional)
+│   ├── aliases.ps1                # Linux-style aliases (ls, grep, cat, ...)
+│   ├── functions.ps1              # Helper functions (touch, mkcd, .., ...)
+│   ├── git-helpers.ps1            # Git shortcuts (gs, ga, gc, gp, ...)
+│   ├── psreadline.ps1             # PSReadLine configuration
+│   └── environment.ps1            # PATH & environment variables
+├── scripts/
+│   └── install-dependencies.ps1   # Automatic dependency installer
+└── themes/                        # Oh My Posh themes (optional)
 ```
 
 ## 🔧 Installation
 
-### 1. Install PowerShell 7.x
+### Quick Install (Automated)
+
+1. **Clone the repo:**
+   ```powershell
+   cd C:\code
+   git clone git@github.com:zentala/pwsh-profile.git
+   cd pwsh-profile
+   ```
+
+2. **Run installation script:**
+   ```powershell
+   pwsh -ExecutionPolicy Bypass -File scripts\install-dependencies.ps1
+   ```
+
+   This will automatically check and install all dependencies!
+
+3. **Restart PowerShell** and enjoy your modern terminal!
+
+---
+
+### Manual Install (Step by Step)
+
+### 1. Clone the repo
+
+```powershell
+cd C:\code
+git clone git@github.com:zentala/pwsh-profile.git
+```
+
+### 2. Install PowerShell 7.x
 
 ```powershell
 winget install Microsoft.PowerShell
 ```
 
-### 2. Install Required Tools
+### 3. Install Required Tools
 
 ```powershell
 # Oh My Posh - Beautiful prompt
@@ -61,7 +91,7 @@ winget install ajeetdsouza.zoxide
 winget install gerardog.gsudo
 ```
 
-### 3. Install PowerShell Modules
+### 4. Install PowerShell Modules
 
 ```powershell
 # PSReadLine - Advanced command line editing
@@ -78,13 +108,6 @@ Install-Module -Name PSFzf -Scope CurrentUser
 
 # Oh My Stats - System stats (optional but recommended)
 # See: https://github.com/zentala/oh-my-stats
-```
-
-### 4. Clone This Profile
-
-```powershell
-cd C:\code
-git clone git@github.com:zentala/pwsh-profile.git
 ```
 
 ### 5. Load Profile
