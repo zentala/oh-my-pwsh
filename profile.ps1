@@ -13,6 +13,9 @@ $DisableFastfetch = $true
 # Import Terminal-Icons - adds icons to ls/dir output
 Import-Module Terminal-Icons -ErrorAction SilentlyContinue
 
+# Import posh-git - Git integration for prompt
+Import-Module posh-git -ErrorAction SilentlyContinue
+
 # ============================================
 # ŁADOWANIE MODUŁÓW
 # ============================================

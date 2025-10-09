@@ -48,10 +48,11 @@ pwsh-profile/
 ## 🛠️ Requirements
 
 - PowerShell 7.x
-- Oh My Posh
-- PSReadLine
-- Terminal Icons (optional)
-- Oh My Stats (optional)
+- [Oh My Posh](https://ohmyposh.dev/) - Beautiful prompt
+- [PSReadLine](https://github.com/PowerShell/PSReadLine) - Command line editing
+- [posh-git](https://github.com/dahlbyk/posh-git) - Git integration for prompt
+- [Terminal Icons](https://github.com/devblackops/Terminal-Icons) (optional) - File icons
+- [Oh My Stats](https://github.com/zentala/oh-my-stats) (optional) - System stats
 
 ## 📝 License
 
