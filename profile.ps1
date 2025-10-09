@@ -55,6 +55,8 @@ if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
 # ============================================
 # OH-MY-STATS - System Statistics Display
 # ============================================
+# Display stats at the END so errors/warnings are visible above
+Write-Host ""  # Empty line to separate errors from stats
 Import-Module C:\code\oh-my-stats\pwsh\oh-my-stats.psd1 -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 if (Get-Module oh-my-stats) {
     Show-SystemStats
