@@ -1,0 +1,10 @@
+# PowerShell
+*.log
+*.backup
+
+# Private scripts (opcjonalnie)
+scripts/private/
+
+# OS
+.DS_Store
+Thumbs.db
