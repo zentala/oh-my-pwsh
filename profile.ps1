@@ -10,8 +10,8 @@ $global:PSProfileLoadStart = Get-Date
 # Wyłącz fastfetch - ustaw na $false aby włączyć
 $DisableFastfetch = $true
 
-# Import Terminal-Icons asynchronicznie (spowalnia start)
-$null = Start-Job -ScriptBlock { Import-Module Terminal-Icons } -Name LoadIcons
+# Import Terminal-Icons - adds icons to ls/dir output
+Import-Module Terminal-Icons -ErrorAction SilentlyContinue
 
 # ============================================
 # ŁADOWANIE MODUŁÓW
@@ -38,7 +38,7 @@ if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
 # ============================================
 # OH-MY-STATS - System Statistics Display
 # ============================================
-Import-Module C:\code\oh-my-stats\pwsh\oh-my-stats.psd1 -Force -ErrorAction SilentlyContinue
+Import-Module C:\code\oh-my-stats\pwsh\oh-my-stats.psd1 -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 if (Get-Module oh-my-stats) {
     Show-SystemStats
 } else {
