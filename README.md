@@ -2,6 +2,8 @@
 
 A modern, powerful PowerShell profile for Windows 11 with all the tools you need for a productive terminal experience.
 
+<img src="https://cdn.zentala.io/terminal/pwsh.png" alt="PowerShell Terminal Screenshot" style="max-width: 700px; height: auto;">
+
 ## ✨ What You Get
 
 ### 🎨 Beautiful Terminal
