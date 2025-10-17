@@ -58,6 +58,22 @@ function touch {
     }
 }
 
+# Funkcja mkdir jak w Linux - tworzy katalog
+# Obsługuje -p (mkdir -p path/to/dir działa dzięki -Force)
+function mkdir {
+    param(
+        [Parameter(ValueFromRemainingArguments)]
+        [string[]]$paths
+    )
+    # Remove -p flag if present (compatibility with Linux)
+    $paths = $paths | Where-Object { $_ -ne '-p' }
+
+    foreach ($path in $paths) {
+        New-Item -ItemType Directory -Path $path -Force | Out-Null
+        Write-Host "✓ Created directory: $path" -ForegroundColor Green
+    }
+}
+
 # Funkcja dla szybkiego mkdir i cd
 function mkcd {
     param($dir)

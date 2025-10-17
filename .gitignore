@@ -1,6 +1,7 @@
 # PowerShell
 *.log
 *.backup
+config.ps1
 
 # Private scripts (opcjonalnie)
 scripts/private/
@@ -8,3 +9,5 @@ scripts/private/
 # OS
 .DS_Store
 Thumbs.db
+.cursorindexingignore
+.specstory/**

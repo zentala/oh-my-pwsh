@@ -1,14 +1,35 @@
 # =====================================================
-# PowerShell Profile - Paweł Żentała
+# oh-my-pwsh - PowerShell Profile Enhanced
 # =====================================================
-# Modularny profil załadowany z C:\code\pwsh-profile
+# Created by: Paweł Żentała
 # Repo: https://github.com/zentala/pwsh-profile
+# Docs: Type 'help' to see available commands
 
-# Timer do mierzenia czasu ładowania profilu
+# Timer for profile loading
 $global:PSProfileLoadStart = Get-Date
 
-# Wyłącz fastfetch - ustaw na $false aby włączyć
-$DisableFastfetch = $true
+# ============================================
+# LOAD USER CONFIGURATION
+# ============================================
+$ProfileRoot = Split-Path -Parent $PSCommandPath
+$ConfigPath = Join-Path $ProfileRoot "config.ps1"
+
+# Check if config exists, if not copy from example
+if (-not (Test-Path $ConfigPath)) {
+    $ExampleConfig = Join-Path $ProfileRoot "config.example.ps1"
+    if (Test-Path $ExampleConfig) {
+        Copy-Item $ExampleConfig $ConfigPath
+        Write-Host "✓ Created config.ps1from template" -ForegroundColor Green
+        Write-Host "  Edit it: code config.ps1`n" -ForegroundColor Cyan
+    } else {
+        Write-Host "⚠ config.example.ps1 not found!" -ForegroundColor Yellow
+    }
+}
+
+# Load user config
+if (Test-Path $ConfigPath) {
+    . $ConfigPath
+}
 
 # Import Terminal-Icons - adds icons to ls/dir output
 Import-Module Terminal-Icons -ErrorAction SilentlyContinue
@@ -17,12 +38,15 @@ Import-Module Terminal-Icons -ErrorAction SilentlyContinue
 Import-Module posh-git -ErrorAction SilentlyContinue
 
 # Import PSFzf - Fuzzy finder for files, history, git (Ctrl+R, Ctrl+T)
-Import-Module PSFzf -ErrorAction SilentlyContinue
-if (Get-Module PSFzf) {
-    # Ctrl+R - Command history search
-    Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
-    # Enable git integration
-    Set-PsFzfOption -EnableAliasFuzzyGitStatus
+# Check if fzf binary exists before importing PSFzf
+if (Get-Command fzf -ErrorAction SilentlyContinue) {
+    Import-Module PSFzf -ErrorAction SilentlyContinue
+    if (Get-Module PSFzf) {
+        # Ctrl+R - Command history search
+        Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+        # Enable git integration
+        Set-PsFzfOption -EnableAliasFuzzyGitStatus
+    }
 }
 
 # zoxide - Smart directory jumping (z command)
@@ -31,16 +55,22 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 }
 
 # ============================================
-# ŁADOWANIE MODUŁÓW
+# LOAD MODULES
 # ============================================
-$ProfileRoot = Split-Path -Parent $PSCommandPath
 
-# Moduły podstawowe
+# Core modules
 . "$ProfileRoot\modules\environment.ps1"
 . "$ProfileRoot\modules\psreadline.ps1"
-. "$ProfileRoot\modules\aliases.ps1"
 . "$ProfileRoot\modules\functions.ps1"
 . "$ProfileRoot\modules\git-helpers.ps1"
+
+# oh-my-pwsh modules (can be toggled in config.ps1)
+. "$ProfileRoot\modules\linux-compat.ps1"      # Linux-style aliases
+. "$ProfileRoot\modules\enhanced-tools.ps1"    # bat, eza, ripgrep, fd, delta
+. "$ProfileRoot\modules\help-system.ps1"       # Custom help command
+
+# Legacy aliases (deprecated - use linux-compat.ps1 instead)
+# . "$ProfileRoot\modules\aliases.ps1"
 
 # ============================================
 # OH MY POSH - Inicjalizacja
@@ -62,4 +92,15 @@ if (Get-Module oh-my-stats) {
     Show-SystemStats
 } else {
     Write-Host "⚠ oh-my-stats module not loaded - check C:\code\oh-my-stats\" -ForegroundColor Yellow
+}
+
+# ============================================
+# WELCOME MESSAGE
+# ============================================
+if ($global:OhMyPwsh_ShowTips) {
+    Write-Host ""
+    Write-Host "💡 Type " -NoNewline -ForegroundColor Cyan
+    Write-Host "help" -NoNewline -ForegroundColor Yellow
+    Write-Host " to see available commands" -ForegroundColor Cyan
+    Write-Host ""
 }

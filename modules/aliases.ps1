@@ -13,13 +13,13 @@ Set-Alias cat Get-Content
 Set-Alias less more
 Set-Alias head 'Get-Content -TotalCount'
 Set-Alias tail 'Get-Content -Tail'
-Set-Alias touch New-Item
+# touch is defined as a function in functions.ps1 to properly create files
 Remove-Alias cp -ErrorAction SilentlyContinue
 Set-Alias cp Copy-Item
 Set-Alias mv Move-Item
 Set-Alias rm Remove-Item
 Set-Alias rmdir Remove-Item
-Set-Alias mkdir New-Item
+# mkdir is defined as a function in functions.ps1 to support -ItemType Directory
 Set-Alias pwd Get-Location
 Set-Alias ps Get-Process
 Set-Alias kill Stop-Process
