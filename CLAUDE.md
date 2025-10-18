@@ -22,6 +22,20 @@ PowerShell profile with zero-error philosophy and graceful degradation for power
 - `./todo/INDEX.md` - master list with status: `backlog | active | done | abandoned`
 - Link all active tasks in this CLAUDE.md
 
+### Daily Runbooks
+- **Location**: `.claude/runbook/YYYY-MM-DD.md`
+- **Purpose**: Daily work log with links to files, tasks, and commits
+- **Contents**:
+  - What was done today
+  - Links to modified files
+  - Links to tasks (if task has own runbook, link to it; otherwise describe work here)
+  - Commits made
+  - Small tasks/fixes without separate task documentation
+  - Decisions made
+  - Blockers/issues encountered
+- **Format**: Chronological, markdown, concise
+- **When**: Create/update at end of session or when significant work done
+
 ### Documentation vs Tasks
 - `./docs/` - **User documentation** for implemented features (how to use)
 - `./todo/` - **Development documentation** (how to implement/architecture decisions)
