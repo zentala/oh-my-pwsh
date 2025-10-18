@@ -11,7 +11,9 @@
       "Bash(git push)",
       "Read(//c/Users/Lenovo/.claude/**)",
       "Bash(git add -A)",
-      "Bash(git log -1 --format='%an %ae')"
+      "Bash(git log -1 --format='%an %ae')",
+      "Bash(git mv todo/004-write-status-message.md todo/done/004-write-status-message.md)",
+      "Bash(Get-Date -Format \"yyyy-MM-dd\")"
     ],
     "deny": [],
     "ask": []

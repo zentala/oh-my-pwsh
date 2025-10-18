@@ -2,10 +2,7 @@
 # Profile Status Logger
 # ============================================
 # Central logging function for oh-my-pwsh status messages
-#
-# Levels: success, warning, error, info
-# Primary: main message
-# Secondary: optional install command or additional info
+# Now uses Write-StatusMessage for proper color control
 
 function Write-ProfileStatus {
     param(
@@ -21,47 +18,14 @@ function Write-ProfileStatus {
         [switch]$NoIndent
     )
 
-    # Indent (2 spaces by default)
-    $indent = if ($NoIndent) { "" } else { "  " }
-
-    # Status icon and color based on level
-    switch ($Level) {
-        'success' {
-            $icon = "✓"
-            $iconColor = "Green"
-        }
-        'warning' {
-            $icon = "!"
-            $iconColor = "Yellow"
-        }
-        'error' {
-            $icon = "" # Nerd Font icon (X/close)
-            $iconColor = "Red"
-        }
-        'info' {
-            $icon = "i"
-            $iconColor = "Cyan"
-        }
-    }
-
-    # Write status with gray brackets
-    Write-Host "$indent" -NoNewline
-    Write-Host "[" -NoNewline -ForegroundColor DarkGray
-    Write-Host $icon -NoNewline -ForegroundColor $iconColor
-    Write-Host "]" -NoNewline -ForegroundColor DarkGray
-    Write-Host " $Primary" -NoNewline -ForegroundColor White
-
-    # Write secondary (install command) if provided
+    # Build message
+    $message = $Primary
     if ($Secondary) {
-        Write-Host "  " -NoNewline
-        Write-Host "[" -NoNewline -ForegroundColor DarkGray
-        Write-Host " " -NoNewline
-        Write-Host "$" -NoNewline -ForegroundColor Gray
-        Write-Host " $Secondary " -NoNewline -ForegroundColor Gray
-        Write-Host "]" -ForegroundColor DarkGray
-    } else {
-        Write-Host ""  # New line
+        $message += "  [ $ $Secondary ]"
     }
+
+    # Use Write-StatusMessage for proper color control
+    Write-StatusMessage -Role $Level -Message $message -NoIndent:$NoIndent
 }
 
 # ============================================
@@ -78,21 +42,15 @@ function Write-InstallHint {
         [string]$InstallCommand
     )
 
-    $indent = "  "
-    Write-Host "$indent" -NoNewline
-    Write-Host "[" -NoNewline -ForegroundColor DarkGray
-    Write-Host "!" -NoNewline -ForegroundColor Yellow
-    Write-Host "]" -NoNewline -ForegroundColor DarkGray
-    Write-Host " install " -NoNewline -ForegroundColor White
-    Write-Host "``$Tool``" -NoNewline -ForegroundColor White
-
+    # Build message: install `tool` for description: command
+    $message = "install ``$Tool``"
     if ($Description) {
-        Write-Host " for " -NoNewline -ForegroundColor White
-        Write-Host $Description -NoNewline -ForegroundColor White
+        $message += " for $Description"
     }
+    $message += ": $InstallCommand"
 
-    Write-Host ": " -NoNewline -ForegroundColor White
-    Write-Host $InstallCommand -ForegroundColor DarkGray
+    # Use Write-StatusMessage with warning level
+    Write-StatusMessage -Role "warning" -Message $message
 }
 
 # ============================================

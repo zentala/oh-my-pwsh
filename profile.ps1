@@ -38,7 +38,12 @@ if (Test-Path $ConfigPath) {
 . "$ProfileRoot\settings\icons.ps1"
 
 # ============================================
-# LOAD LOGGER - Must load AFTER icons
+# LOAD STATUS OUTPUT - Must load AFTER icons
+# ============================================
+. "$ProfileRoot\modules\status-output.ps1"
+
+# ============================================
+# LOAD LOGGER - Must load AFTER icons and status-output
 # ============================================
 . "$ProfileRoot\modules\logger.ps1"
 
