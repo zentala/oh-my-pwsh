@@ -386,6 +386,8 @@ Tests run automatically on:
 
 ## Git Hooks (Optional)
 
+**Status:** ✅ Implemented (Phase 4)
+
 ### Pre-commit Hook
 
 **Installation:**
@@ -394,16 +396,34 @@ Tests run automatically on:
 ```
 
 **What it does:**
-- Runs **unit tests only** (fast, < 30s)
+- Runs **unit tests only** (fast, typically 10-20s)
 - Blocks commit if tests fail
-- Shows clear error messages
+- Shows clear error messages with bypass instructions
+- Auto-displays test results before commit
 
-**Bypass:**
+**Hook Location:**
+- Source: `.github/hooks/pre-commit`
+- Installed to: `.git/hooks/pre-commit`
+
+**Bypass When Needed:**
 ```bash
 git commit --no-verify -m "WIP: quick save"
 ```
 
-**Philosophy:** Helpful but not mandatory. CI is the ultimate gate.
+**Example Output:**
+```
+🧪 Running pre-commit tests...
+   (bypass with: git commit --no-verify)
+
+✅ All unit tests passed in 12.3s
+```
+
+**Uninstall:**
+```powershell
+Remove-Item .git/hooks/pre-commit
+```
+
+**Philosophy:** Helpful but not mandatory. CI is the ultimate quality gate.
 
 See [ADR-004: Git Hooks Optional](../adr/004-git-hooks-optional.md) for rationale.
 
@@ -638,10 +658,12 @@ Describe "Install Script Consistency" {
 
 ### Writing a New Test
 
-1. **Create test file:**
+**✅ Phase 4: Developer Experience Tools Available**
+
+1. **Generate test file from template:**
    ```powershell
    ./scripts/New-TestFile.ps1 -Path modules/my-module.ps1
-   # Generates tests/Unit/MyModule.Tests.ps1
+   # Creates tests/Unit/MyModule.Tests.ps1 with template
    ```
 
 2. **Write tests using AAA pattern:**
@@ -660,16 +682,48 @@ Describe "Install Script Consistency" {
    }
    ```
 
-3. **Run tests:**
+3. **Run tests in watch mode (auto-rerun on changes):**
+   ```powershell
+   ./scripts/Invoke-Tests.ps1 -Type Unit -Watch
+   # Watches for file changes and re-runs tests automatically
+   ```
+
+4. **Or run tests once with filter:**
    ```powershell
    ./scripts/Invoke-Tests.ps1 -Filter "MyModule*"
    ```
 
-4. **Check coverage:**
+5. **Check coverage:**
    ```powershell
    ./scripts/Invoke-Tests.ps1 -Coverage
-   ./scripts/Show-Coverage.ps1  # Opens HTML report
+   ./scripts/Show-Coverage.ps1  # Display coverage percentage
    ```
+
+### Developer Tools (Phase 4)
+
+**Test Scaffolding:**
+```powershell
+# Generate new test file
+./scripts/New-TestFile.ps1 -Path modules/logger.ps1
+./scripts/New-TestFile.ps1 -Path modules/git-helpers.ps1 -Type Integration
+```
+
+**Watch Mode:**
+```powershell
+# Auto-rerun tests on file changes
+./scripts/Invoke-Tests.ps1 -Type Unit -Watch
+# Edit files → tests rerun automatically
+# Press Ctrl+C to stop
+```
+
+**Git Hooks (Optional):**
+```powershell
+# Install pre-commit hook (runs unit tests before commit)
+./scripts/Install-GitHooks.ps1
+
+# Bypass when needed
+git commit --no-verify -m "WIP: quick save"
+```
 
 ### Test-Driven Development (TDD)
 

@@ -1,0 +1,52 @@
+BeforeAll {
+    # Source dependencies
+    . $PSScriptRoot/../../settings/icons.ps1
+    . $PSScriptRoot/../../modules/status-output.ps1
+    . $PSScriptRoot/../../modules/logger.ps1
+
+    # Source module under test
+    . $PSScriptRoot/../../{{MODULE_PATH}}
+
+    # Configure test environment
+    $global:OhMyPwsh_UseNerdFonts = $false
+    $global:OhMyPwsh_ShowFeedback = $false
+}
+
+Describe "{{MODULE_NAME}} Module" {
+    Context "When module is loaded" {
+        It "Module loads without errors" {
+            { . $PSScriptRoot/../../{{MODULE_PATH}} } | Should -Not -Throw
+        }
+    }
+
+    # Add your tests here
+    Context "Function: YourFunction" {
+        BeforeEach {
+            # Setup mocks
+            Mock Write-Host {}
+        }
+
+        It "Does something correctly" {
+            # Arrange
+            $input = "test"
+
+            # Act
+            $result = YourFunction -Parameter $input
+
+            # Assert
+            $result | Should -Not -BeNullOrEmpty
+        }
+
+        It "Handles edge cases" {
+            # Test edge case behavior
+            { YourFunction -Parameter $null } | Should -Not -Throw
+        }
+    }
+}
+
+Describe "{{MODULE_NAME}} Error Handling" {
+    It "Does not throw on invalid input" {
+        # Test error handling
+        { YourFunction -Parameter "invalid" } | Should -Not -Throw
+    }
+}

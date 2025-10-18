@@ -130,6 +130,89 @@ if ($Coverage -and -not $Fast) {
     Write-Host "📊 Coverage report will be generated" -ForegroundColor Cyan
 }
 
+# Watch mode
+if ($Watch) {
+    Write-Host "👀 Watch mode enabled - watching for file changes..." -ForegroundColor Cyan
+    Write-Host "   Press Ctrl+C to stop`n" -ForegroundColor DarkGray
+
+    # Function to run tests
+    $runTests = {
+        Clear-Host
+        Write-Host "🔄 Running tests... ($(Get-Date -Format 'HH:mm:ss'))`n" -ForegroundColor Cyan
+
+        $result = Invoke-Pester -Configuration $config
+
+        Write-Host "`n" -NoNewline
+        if ($result.FailedCount -eq 0) {
+            Write-Host "✅ All tests passed!" -ForegroundColor Green
+        } else {
+            Write-Host "❌ $($result.FailedCount) test(s) failed" -ForegroundColor Red
+        }
+
+        Write-Host "   Total: $($result.TotalCount) | " -NoNewline -ForegroundColor Gray
+        Write-Host "Passed: $($result.PassedCount) | " -NoNewline -ForegroundColor Green
+        if ($result.FailedCount -gt 0) {
+            Write-Host "Failed: $($result.FailedCount) | " -NoNewline -ForegroundColor Red
+        }
+        Write-Host "Skipped: $($result.SkippedCount)`n" -ForegroundColor Yellow
+
+        Write-Host "👀 Watching for changes... (Ctrl+C to stop)" -ForegroundColor Cyan
+    }
+
+    # Run tests initially
+    & $runTests
+
+    # Setup file watcher
+    $watcher = New-Object System.IO.FileSystemWatcher
+    $watcher.Path = $projectRoot
+    $watcher.Filter = "*.ps1"
+    $watcher.IncludeSubdirectories = $true
+    $watcher.EnableRaisingEvents = $true
+
+    # Debounce mechanism
+    $lastRun = [DateTime]::MinValue
+    $debounceMs = 2000
+
+    $action = {
+        $path = $Event.SourceEventArgs.FullPath
+        $changeType = $Event.SourceEventArgs.ChangeType
+
+        # Ignore coverage and .git files
+        if ($path -like "*\tests\Coverage\*" -or $path -like "*\.git\*") {
+            return
+        }
+
+        # Debounce - only run if enough time has passed
+        $now = Get-Date
+        if (($now - $script:lastRun).TotalMilliseconds -lt $script:debounceMs) {
+            return
+        }
+        $script:lastRun = $now
+
+        Write-Host "`n📝 File changed: $(Split-Path $path -Leaf)" -ForegroundColor Yellow
+        Start-Sleep -Milliseconds 500  # Wait for file to be written
+        & $script:runTests
+    }
+
+    # Register events
+    Register-ObjectEvent -InputObject $watcher -EventName Changed -Action $action | Out-Null
+    Register-ObjectEvent -InputObject $watcher -EventName Created -Action $action | Out-Null
+    Register-ObjectEvent -InputObject $watcher -EventName Deleted -Action $action | Out-Null
+
+    try {
+        # Keep script running
+        while ($true) {
+            Start-Sleep -Seconds 1
+        }
+    } finally {
+        # Cleanup
+        $watcher.Dispose()
+        Get-EventSubscriber | Unregister-Event
+    }
+
+    exit 0
+}
+
 # Run tests
 Write-Host "`n🧪 Running $Type tests...`n" -ForegroundColor Cyan
 
