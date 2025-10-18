@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-Command scoop, choco -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object Name, Source)",
+      "Bash(powershell:*)",
+      "Bash(fzf:*)",
+      "Bash(pwsh:*)",
+      "Bash(git commit:*)",
+      "Read(//c/code/oh-my-stats/**)",
+      "Bash(git push)",
+      "Read(//c/Users/Lenovo/.claude/**)",
+      "Bash(git add -A)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

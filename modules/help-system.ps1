@@ -12,8 +12,7 @@ function Show-OhMyPwshHelp {
         [string]$Topic = "all"
     )
 
-    Clear-Host
-
+    # No Clear-Host - print to terminal like everything else
     # Header
     Write-Host "`n╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
     Write-Host "║              " -NoNewline -ForegroundColor Cyan
@@ -108,10 +107,12 @@ function Show-OhMyPwshHelp {
                 Write-Host $tool.Description -ForegroundColor Gray
             } else {
                 Write-Host "  ✗ " -NoNewline -ForegroundColor Red
-                Write-Host "$($tool.Name.PadRight(12))" -NoNewline -ForegroundColor DarkGray
-                Write-Host $tool.Description -ForegroundColor DarkGray
-                Write-Host "    → " -NoNewline -ForegroundColor DarkGray
-                Write-Host "scoop install $($tool.Name)" -ForegroundColor Yellow
+                Write-Host "install " -NoNewline -ForegroundColor White
+                Write-Host "``$($tool.Name)``" -NoNewline -ForegroundColor White
+                Write-Host " for " -NoNewline -ForegroundColor White
+                Write-Host "$($tool.Description.ToLower())" -NoNewline -ForegroundColor White
+                Write-Host ": " -NoNewline -ForegroundColor White
+                Write-Host "scoop install $($tool.Name)" -ForegroundColor DarkGray
             }
         }
         Write-Host ""
@@ -209,7 +210,5 @@ function help {
 }
 
 # Aliases
-Set-Alias ? Show-OhMyPwshHelp
+# Note: '?' is read-only in PowerShell, can't override
 Set-Alias omph Show-OhMyPwshHelp
-
-Export-ModuleMember -Function * -Alias *

@@ -19,15 +19,9 @@ if (Get-Command bat -ErrorAction SilentlyContinue) {
         param([Parameter(ValueFromRemainingArguments)]$args)
         bat @args
     }
-
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "✓ bat loaded (enhanced cat)" -ForegroundColor DarkGreen
-    }
+    Write-ToolStatus -Name "bat" -Installed $true -Description "enhanced cat"
 } else {
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "💡 Install bat for better cat: scoop install bat" -ForegroundColor DarkYellow
-    }
-    # Fallback to native
+    Write-ToolStatus -Name "bat" -Installed $false -Description "improved cat" -ScoopPackage "bat"
     Set-Alias cat Get-Content
 }
 
@@ -58,14 +52,11 @@ if (Get-Command eza -ErrorAction SilentlyContinue) {
         eza --icons --tree @args
     }
 
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "✓ eza loaded (enhanced ls)" -ForegroundColor DarkGreen
-    }
+    Write-ToolStatus -Name "eza" -Installed $true -Description "enhanced ls"
 } else {
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "💡 Install eza for better ls: scoop install eza" -ForegroundColor DarkYellow
-    }
-    # Fallback handled by linux-compat.ps1
+    Write-ToolStatus -Name "eza" -Installed $false -Description "modern ls" -ScoopPackage "eza"
+    # Fallback to native PowerShell Get-ChildItem
+    # ls/ll/la aliases will use default behavior
 }
 
 # ============================================
@@ -80,14 +71,14 @@ if (Get-Command rg -ErrorAction SilentlyContinue) {
         rg @args
     }
 
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "✓ ripgrep loaded (enhanced grep)" -ForegroundColor DarkGreen
-    }
+    Write-ToolStatus -Name "ripgrep" -Installed $true -Description "enhanced grep"
 } else {
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "💡 Install ripgrep for better grep: scoop install ripgrep" -ForegroundColor DarkYellow
+    Write-ToolStatus -Name "ripgrep" -Installed $false -Description "faster grep" -ScoopPackage "ripgrep"
+    # Fallback to Select-String (defined in linux-compat.ps1)
+    function grep {
+        param([Parameter(ValueFromRemainingArguments)]$args)
+        Select-String @args
     }
-    # Fallback to Select-String handled by linux-compat.ps1
 }
 
 # ============================================
@@ -102,14 +93,18 @@ if (Get-Command fd -ErrorAction SilentlyContinue) {
         fd @args
     }
 
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "✓ fd loaded (enhanced find)" -ForegroundColor DarkGreen
-    }
+    Write-ToolStatus -Name "fd" -Installed $true -Description "enhanced find"
 } else {
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "💡 Install fd for better find: scoop install fd" -ForegroundColor DarkYellow
+    Write-ToolStatus -Name "fd" -Installed $false -Description "faster find" -ScoopPackage "fd"
+    # Fallback to Get-ChildItem -Recurse
+    function find {
+        param([Parameter(ValueFromRemainingArguments)]$args)
+        if ($args.Count -gt 0) {
+            Get-ChildItem -Recurse -Filter $args[0] -ErrorAction SilentlyContinue
+        } else {
+            Get-ChildItem -Recurse -ErrorAction SilentlyContinue
+        }
     }
-    # No fallback - PowerShell has Get-ChildItem -Recurse
 }
 
 # ============================================
@@ -127,13 +122,10 @@ if (Get-Command delta -ErrorAction SilentlyContinue) {
     git config --global merge.conflictstyle diff3
     git config --global diff.colorMoved default
 
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "✓ delta configured for git diff" -ForegroundColor DarkGreen
-    }
+    Write-ToolStatus -Name "delta" -Installed $true -Description "enhanced git diff"
 } else {
-    if ($global:OhMyPwsh_ShowTips) {
-        Write-Host "💡 Install delta for better git diff: scoop install delta" -ForegroundColor DarkYellow
-    }
+    Write-ToolStatus -Name "delta" -Installed $false -Description "better git diff" -ScoopPackage "delta"
+    # Fallback: git will use default pager (less or built-in)
 }
 
 # ============================================
@@ -165,6 +157,3 @@ function Install-EnhancedTools {
     Write-Host "`n✨ Done! Restart your terminal to use enhanced tools." -ForegroundColor Green
     Write-Host "💡 Tip: Type 'help' to see what's available`n" -ForegroundColor Cyan
 }
-
-# Export
-Export-ModuleMember -Function * -Alias *

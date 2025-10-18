@@ -19,10 +19,11 @@ if (-not (Test-Path $ConfigPath)) {
     $ExampleConfig = Join-Path $ProfileRoot "config.example.ps1"
     if (Test-Path $ExampleConfig) {
         Copy-Item $ExampleConfig $ConfigPath
-        Write-Host "✓ Created config.ps1from template" -ForegroundColor Green
-        Write-Host "  Edit it: code config.ps1`n" -ForegroundColor Cyan
+        Write-Host "`n✓ Created config.ps1 from template" -ForegroundColor Green
+        Write-Host "  Edit it to customize: code $ConfigPath" -ForegroundColor Cyan
+        Write-Host "  Then reload profile: . `$PROFILE`n" -ForegroundColor DarkGray
     } else {
-        Write-Host "⚠ config.example.ps1 not found!" -ForegroundColor Yellow
+        Write-Host "`n⚠ config.example.ps1 not found!" -ForegroundColor Yellow
     }
 }
 
@@ -31,31 +32,64 @@ if (Test-Path $ConfigPath) {
     . $ConfigPath
 }
 
-# Import Terminal-Icons - adds icons to ls/dir output
-Import-Module Terminal-Icons -ErrorAction SilentlyContinue
+# ============================================
+# LOAD ICON SYSTEM - Must load BEFORE logger
+# ============================================
+. "$ProfileRoot\settings\icons.ps1"
 
-# Import posh-git - Git integration for prompt
-Import-Module posh-git -ErrorAction SilentlyContinue
+# ============================================
+# LOAD LOGGER - Must load AFTER icons
+# ============================================
+. "$ProfileRoot\modules\logger.ps1"
 
-# Import PSFzf - Fuzzy finder for files, history, git (Ctrl+R, Ctrl+T)
-# Check if fzf binary exists before importing PSFzf
-if (Get-Command fzf -ErrorAction SilentlyContinue) {
-    Import-Module PSFzf -ErrorAction SilentlyContinue
-    if (Get-Module PSFzf) {
-        # Ctrl+R - Command history search
-        Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
-        # Enable git integration
-        Set-PsFzfOption -EnableAliasFuzzyGitStatus
-    }
-}
-
-# zoxide - Smart directory jumping (z command)
-if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-    Invoke-Expression (& { (zoxide init powershell | Out-String) })
+# ============================================
+# OH-MY-STATS - Display FIRST
+# ============================================
+# Show stats at the TOP, so any errors/warnings during
+# profile loading appear BELOW and stay visible
+Import-Module C:\code\oh-my-stats\pwsh\oh-my-stats.psd1 -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+if (Get-Module oh-my-stats) {
+    Show-SystemStats
 }
 
 # ============================================
-# LOAD MODULES
+# LOAD POWERSHELL MODULES
+# ============================================
+
+# Terminal-Icons
+Import-Module Terminal-Icons -ErrorAction SilentlyContinue
+Write-ModuleStatus -Name "Terminal Icons" -Loaded ([bool](Get-Module Terminal-Icons))
+
+# posh-git
+Import-Module posh-git -ErrorAction SilentlyContinue
+Write-ModuleStatus -Name "posh-git" -Loaded ([bool](Get-Module posh-git))
+
+# PSFzf
+if (Get-Command fzf -ErrorAction SilentlyContinue) {
+    Import-Module PSFzf -ErrorAction SilentlyContinue
+    if (Get-Module PSFzf) {
+        Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+        Set-PsFzfOption -EnableAliasFuzzyGitStatus
+        Write-ModuleStatus -Name "PSFzf" -Loaded $true -Description "Ctrl+R, Ctrl+T"
+    } else {
+        Write-ModuleStatus -Name "PSFzf" -Loaded $false
+    }
+} else {
+    # Warning (not error) - fzf is optional enhancement
+    Write-InstallHint -Tool "fzf" -Description "fuzzy finder" -InstallCommand "winget install fzf"
+}
+
+# zoxide
+if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+    Invoke-Expression (& { (zoxide init powershell | Out-String) })
+    Write-ModuleStatus -Name "zoxide" -Loaded $true -Description "z command"
+} else {
+    # Warning (not error) - zoxide is optional enhancement
+    Write-InstallHint -Tool "zoxide" -Description "smart directory jumping" -InstallCommand "winget install ajeetdsouza.zoxide"
+}
+
+# ============================================
+# LOAD CORE MODULES
 # ============================================
 
 # Core modules
@@ -73,33 +107,36 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 # . "$ProfileRoot\modules\aliases.ps1"
 
 # ============================================
-# OH MY POSH - Inicjalizacja
+# OH MY POSH - Theme Engine
 # ============================================
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
     $omp_config = "$env:POSH_THEMES_PATH\quick-term.omp.json"
     if (Test-Path $omp_config) {
         oh-my-posh init pwsh --config $omp_config 2>$null | Invoke-Expression
+        Write-ModuleStatus -Name "Oh My Posh" -Loaded $true
+    } else {
+        Write-ProfileStatus -Level warning -Primary "Oh My Posh" -Secondary "theme not found"
     }
+} else {
+    Write-ProfileStatus -Level warning -Primary "Oh My Posh" -Secondary "winget install JanDeDobbeleer.OhMyPosh"
 }
 
-# ============================================
-# OH-MY-STATS - System Statistics Display
-# ============================================
-# Display stats at the END so errors/warnings are visible above
-Write-Host ""  # Empty line to separate errors from stats
-Import-Module C:\code\oh-my-stats\pwsh\oh-my-stats.psd1 -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-if (Get-Module oh-my-stats) {
-    Show-SystemStats
-} else {
-    Write-Host "⚠ oh-my-stats module not loaded - check C:\code\oh-my-stats\" -ForegroundColor Yellow
-}
+# PSReadLine
+Write-ModuleStatus -Name "PSReadLine" -Loaded ([bool](Get-Module PSReadLine))
+
+Write-Host ""  # Empty line after all modules
 
 # ============================================
 # WELCOME MESSAGE
 # ============================================
-if ($global:OhMyPwsh_ShowTips) {
+# Show welcome by default if not configured
+if (-not (Get-Variable -Name OhMyPwsh_ShowWelcome -Scope Global -ErrorAction SilentlyContinue)) {
+    $global:OhMyPwsh_ShowWelcome = $true
+}
+
+if ($global:OhMyPwsh_ShowWelcome) {
     Write-Host ""
-    Write-Host "💡 Type " -NoNewline -ForegroundColor Cyan
+    Write-Host "  💡 Type " -NoNewline -ForegroundColor Cyan
     Write-Host "help" -NoNewline -ForegroundColor Yellow
     Write-Host " to see available commands" -ForegroundColor Cyan
     Write-Host ""

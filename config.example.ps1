@@ -15,6 +15,23 @@
 $global:OhMyPwsh_EnableLinuxCompat = $true
 
 # ============================================
+# ICONS & APPEARANCE
+# ============================================
+# Use Nerd Font icons instead of Unicode fallbacks
+# Requires a Nerd Font installed in your terminal (e.g., FiraCode Nerd Font)
+# Download: https://www.nerdfonts.com/
+#
+# Set to $true if you have Nerd Fonts installed, $false for Unicode fallback
+$global:OhMyPwsh_UseNerdFonts = $false
+
+# Custom icon overrides (optional)
+# $global:OhMyPwsh_CustomIcons = @{
+#     success = "✅"
+#     warning = "⚠️"
+#     error = "❌"
+# }
+
+# ============================================
 # ENHANCED TOOLS
 # ============================================
 # Use modern alternatives when available:
@@ -41,8 +58,8 @@ $global:OhMyPwsh_ShowAliasTargets = $true
 # Show feedback messages for operations (Created, Deleted, etc.)
 $global:OhMyPwsh_ShowFeedback = $true
 
-# Show tips and hints about available features
-$global:OhMyPwsh_ShowTips = $true
+# Show welcome tip about help command
+$global:OhMyPwsh_ShowWelcome = $true
 
 # ============================================
 # STARTUP DISPLAY

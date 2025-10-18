@@ -258,8 +258,8 @@ $global:OhMyPwsh_ShowAliasTargets = $true
 # Feedback Messages - Get visual confirmation
 $global:OhMyPwsh_ShowFeedback = $true
 
-# Tips and Hints
-$global:OhMyPwsh_ShowTips = $true
+# Welcome Message - Show help tip on startup
+$global:OhMyPwsh_ShowWelcome = $true
 ```
 
 ### Change Oh My Posh Theme

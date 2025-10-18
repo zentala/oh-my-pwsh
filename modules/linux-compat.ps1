@@ -189,6 +189,3 @@ function sudo {
 function ssh-keygen {
     ssh-keygen.exe @args
 }
-
-# Export module
-Export-ModuleMember -Function * -Alias *
