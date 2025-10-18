@@ -141,11 +141,13 @@ Currently using **Unicode only** (Nerd Fonts suspended due to rendering issues):
 
 ## Active Tasks
 
-- [001-logging-system.md](./todo/001-logging-system.md) - Reusable logging architecture
+- [004-write-status-message.md](./todo/004-write-status-message.md) - **P0** - Colored status output (Option B)
+- [001-logging-system.md](./todo/001-logging-system.md) - **Pending** - Reusable logging (blocked by 004)
+- [003-nerd-font-architecture.md](./todo/003-nerd-font-architecture.md) - **Experimental** - NF partial support
 
 ## Completed Tasks
 
-- [002-icon-fallback-system.md](./todo/done/002-icon-fallback-system.md) - Icon system (Unicode only, NF suspended)
+- [002-icon-fallback-system.md](./todo/done/002-icon-fallback-system.md) - Icon system (Unicode working, NF experimental)
 
 ---
 

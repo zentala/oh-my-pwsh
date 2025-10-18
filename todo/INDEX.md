@@ -2,8 +2,9 @@
 
 ## Active
 
-- [001-logging-system.md](./001-logging-system.md) - `active` - Reusable logging architecture
-- [003-nerd-font-architecture.md](./003-nerd-font-architecture.md) - `active` - NF without brackets, Unicode with brackets
+- [004-write-status-message.md](./004-write-status-message.md) - `active` - Colored status output (Option B)
+- [001-logging-system.md](./001-logging-system.md) - `pending` - Reusable logging architecture (blocked by 004)
+- [003-nerd-font-architecture.md](./003-nerd-font-architecture.md) - `experimental` - NF partial support
 
 ## Backlog
 
