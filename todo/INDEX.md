@@ -2,7 +2,8 @@
 
 ## Active
 
-- [003-nerd-font-architecture.md](./003-nerd-font-architecture.md) - `experimental` - NF partial support
+- [005-testing-infrastructure.md](./005-testing-infrastructure.md) - `active` - P1 - Testing infrastructure (Pester, CI/CD, coverage)
+- [003-nerd-font-architecture.md](./003-nerd-font-architecture.md) - `experimental` - NF partial support (suspended)
 
 ## Backlog
 

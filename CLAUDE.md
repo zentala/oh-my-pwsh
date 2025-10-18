@@ -41,6 +41,42 @@ PowerShell profile with zero-error philosophy and graceful degradation for power
 - `./todo/` - **Development documentation** (how to implement/architecture decisions)
 - Every `./docs/` file linked in CLAUDE.md with description
 
+### Architecture Decision Records (ADRs)
+- **Location**: `./adr/NNN-short-title.md`
+- **Format**: [MADR](https://adr.github.io/madr/) (Markdown Any Decision Records)
+- **Purpose**: Document important architectural and design decisions
+- **Naming**: Zero-padded 3 digits + lowercase-with-hyphens (e.g., `001-pester-test-framework.md`)
+- **Index**: All ADRs listed in [adr/README.md](./adr/README.md)
+- **Cross-linking**: ADRs link to related tasks, docs, and other ADRs
+
+**When to create an ADR:**
+- Significant architectural decision
+- Choosing between multiple valid approaches
+- Setting a technical standard or convention
+- Making a trade-off that affects multiple components
+
+**Format:**
+```markdown
+# ADR-NNN: Title
+Status: [Proposed | Accepted | Deprecated | Superseded]
+Date: YYYY-MM-DD
+
+## Context
+What is the issue?
+
+## Decision
+What did we decide?
+
+## Consequences
+Positive/Negative/Neutral impacts
+
+## Alternatives Considered
+What other options did we evaluate?
+
+## Related
+- Links to tasks, docs, other ADRs
+```
+
 ---
 
 ## Current Architecture Decisions
@@ -162,7 +198,8 @@ Currently using **Unicode only** (Nerd Fonts suspended due to rendering issues):
 
 ## Active Tasks
 
-- [003-nerd-font-architecture.md](./todo/003-nerd-font-architecture.md) - **Experimental** - NF partial support
+- [005-testing-infrastructure.md](./todo/005-testing-infrastructure.md) - **P1** - Testing infrastructure with Pester, CI/CD, coverage
+- [003-nerd-font-architecture.md](./todo/003-nerd-font-architecture.md) - **Experimental** - NF partial support (suspended)
 
 ## Completed Tasks
 
@@ -174,9 +211,18 @@ Currently using **Unicode only** (Nerd Fonts suspended due to rendering issues):
 
 ## Documentation
 
+### Technical Documentation
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Project architecture and module structure
-- [LOGGING-SYSTEM.md](./docs/LOGGING-SYSTEM.md) - Logging system specification
+- [LOGGING-SYSTEM.md](./docs/LOGGING-SYSTEM.md) - Logging system specification and usage
+- [TESTING-STRATEGY.md](./docs/TESTING-STRATEGY.md) - Testing strategy, coverage targets, CI/CD
 - [linux-compatibility.md](./docs/linux-compatibility.md) - Linux command compatibility layer
+
+### Architecture Decisions
+- [adr/README.md](./adr/README.md) - ADR index and conventions
+- [ADR-001](./adr/001-pester-test-framework.md) - Pester as test framework
+- [ADR-002](./adr/002-test-isolation-strategy.md) - Test isolation strategy (3 layers)
+- [ADR-003](./adr/003-coverage-targets.md) - Code coverage targets (75% overall)
+- [ADR-004](./adr/004-git-hooks-optional.md) - Git hooks optional (developer-friendly)
 
 ---
 
