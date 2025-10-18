@@ -6,75 +6,82 @@ Universal, extensible logging system for oh-my-pwsh profile status messages.
 
 ## Design Goals
 
-1. **Single Responsibility**: One function (`Write-Log`) handles ALL output
-2. **Composability**: Higher-level helpers compose `Write-Log` with specific patterns
+1. **Single Responsibility**: One function (`Write-StatusMessage`) handles ALL output
+2. **Composability**: Higher-level helpers compose `Write-StatusMessage` with specific patterns
 3. **Flexibility**: Support any message format without code duplication
 4. **Extensibility**: Easy to add new log types without modifying core
 5. **Future-proof**: Support icon fallbacks, themes, verbosity levels
 
 ## Core Architecture
 
-### Base Layer: `Write-Log`
+### Base Layer: `Write-StatusMessage`
 
 **Single universal function** that ALL logging goes through:
 
 ```powershell
-Write-Log -Level <level> -Message <text> [options]
+Write-StatusMessage -Role <role> -Message <text> [options]
 ```
+
+**Location:** `modules/status-output.ps1`
 
 **Parameters:**
-- `Level` (required): success | warning | error | info | custom
-- `Message` (required): Main message text (can be array/splatted)
-- `Icon` (optional): Override default icon for level
+- `Role` (required): success | warning | error | info | tip | question
+- `Message` (required): String OR array of styled segments
 - `NoIndent` (optional): Skip 2-space indent
-- `NoNewline` (optional): Don't add newline at end
 
-**Behavior:**
-```
-  [icon] message text
-```
+**Output Format:**
+- **Unicode mode** (default): `[icon] message`
+- **Nerd Font mode**: `icon message` (no brackets)
+
+**Color Control:**
+- Brackets: DarkGray
+- Icon: Role-specific color (Green/Yellow/Red/Cyan/Blue/Magenta)
+- Text: White (or custom colors with segments)
 
 ### Message Composition Layer
 
 Build complex messages by composing text segments:
 
 ```powershell
-# Simple message
-Write-Log -Level success -Message "bat (enhanced cat)"
+# Simple message (string)
+Write-StatusMessage -Role "success" -Message "bat (enhanced cat)"
 
-# Composed message (array of text segments with styles)
-Write-Log -Level warning -Message @(
+# Styled segments (array of hashtables)
+$segments = @(
     @{Text = "install "; Color = "White"}
-    @{Text = "``bat``"; Color = "White"}
+    @{Text = "bat"; Color = "Yellow"}
     @{Text = " for "; Color = "White"}
     @{Text = "improved cat"; Color = "White"}
     @{Text = ": "; Color = "White"}
     @{Text = "scoop install bat"; Color = "DarkGray"}
 )
+Write-StatusMessage -Role "warning" -Message $segments
 ```
 
 ### Helper Layer: Semantic Convenience Functions
 
-Domain-specific helpers that compose `Write-Log`:
+**Location:** `modules/logger.ps1`
+
+Domain-specific helpers that compose `Write-StatusMessage`:
 
 ```powershell
-# Tool status (existing use case)
+# Tool status - checks if tool is installed
 Write-ToolStatus -Name "bat" -Installed $true -Description "enhanced cat"
-Write-ToolStatus -Name "eza" -Installed $false -Description "modern ls" -InstallCommand "scoop install eza"
+Write-ToolStatus -Name "eza" -Installed $false -Description "modern ls" -ScoopPackage "eza"
 
-# Module status
+# Module status - checks if PowerShell module is loaded
 Write-ModuleStatus -Name "PSFzf" -Loaded $true -Description "Ctrl+R, Ctrl+T"
 
-# Custom install hints (flexible level)
-Write-InstallHint -Tool "fzf" -Description "fuzzy finder" -Command "winget install fzf" -Level warning
-Write-InstallHint -Tool "nerd-fonts" -Description "better icons" -Command "scoop install FiraCode-NF" -Level info
+# Install hint - shows install command for missing tools
+Write-InstallHint -Tool "fzf" -Description "fuzzy finder" -InstallCommand "winget install fzf"
 
-# Load time
-Write-ProfileLoadTime -Milliseconds 1234
-
-# Feature announcement
-Write-FeatureTip -Feature "Ctrl+R" -Description "Search command history with fzf"
+# Profile status - generic status message
+Write-ProfileStatus -Level "success" -Primary "Configuration loaded"
+Write-ProfileStatus -Level "warning" -Primary "Config not found" -Secondary "using defaults"
 ```
+
+**Implementation:**
+All helpers internally call `Write-StatusMessage` with appropriate styling.
 
 ## Message Types & Use Cases
 
@@ -94,12 +101,12 @@ Write-FeatureTip -Feature "Ctrl+R" -Description "Search command history with fzf
   [!] config.ps1 not found, using defaults
 ```
 
-### 3. Error (Red �)
+### 3. Error (Red x)
 
 **When:** Critical failure that breaks functionality
 ```
-  [�] Failed to load module: PowerShell 7+ required
-  [�] Git not found in PATH
+  [x] Failed to load module: PowerShell 7+ required
+  [x] Git not found in PATH
 ```
 
 ### 4. Info (Cyan i)
@@ -107,206 +114,95 @@ Write-FeatureTip -Feature "Ctrl+R" -Description "Search command history with fzf
 **When:** Informational, non-actionable message
 ```
   [i] Profile loaded in 1234ms
-  [i] Tip: Type 'help' to see available commands
+  [i] Configuration loaded
 ```
 
-### 5. Custom Levels
+### 5. Tip (Blue ※)
 
-**When:** Special contexts (help tips, feature highlights, etc.)
+**When:** Helpful hints or suggestions
 ```
-  [💡] Press Ctrl+R to search command history
-  [🚀] New feature: z command for smart directory jumping
+  [※] Press Ctrl+R to search command history
+  [※] Type 'help' to see available commands
 ```
 
-## Implementation Plan
+### 6. Question (Magenta ?)
 
-### Phase 1: Core `Write-Log` Function
+**When:** Prompting user for input or confirmation
+```
+  [?] Continue with installation?
+  [?] Select configuration option
+```
+
+## Implementation Status
+
+✅ **COMPLETED** - Logging system fully implemented!
+
+### Implemented Components
+
+#### 1. Core Functions
+- **`Write-StatusMessage`** (modules/status-output.ps1)
+  - Supports simple strings and styled segments
+  - Automatic Nerd Font / Unicode detection
+  - Granular color control
+
+- **`Get-FallbackIcon`** (settings/icons.ps1)
+  - Icon system with role-based lookup
+  - Unicode default, Nerd Font experimental
+  - Custom icon override support
+
+#### 2. Helper Functions
+- **`Write-InstallHint`** - Install hints with styled segments
+- **`Write-ToolStatus`** - Tool availability status
+- **`Write-ModuleStatus`** - PowerShell module status
+- **`Write-ProfileStatus`** - Generic status messages
+
+#### 3. Integration
+- All profile status output goes through `Write-StatusMessage`
+- No manual `Write-Host` chains in codebase
+- DRY principle applied throughout
+
+### Usage Examples
 
 ```powershell
-function Write-Log {
-    param(
-        [Parameter(Mandatory)]
-        [ValidateSet('success', 'warning', 'error', 'info')]
-        [string]$Level,
+# Simple success message
+Write-StatusMessage -Role "success" -Message "Module loaded"
 
-        [Parameter(Mandatory, ValueFromRemainingArguments)]
-        $Message,  # Can be string or array of styled segments
+# Warning with styled segments
+$segments = @(
+    @{Text = "install "; Color = "White"}
+    @{Text = "bat"; Color = "Yellow"}
+    @{Text = ": "; Color = "White"}
+    @{Text = "scoop install bat"; Color = "DarkGray"}
+)
+Write-StatusMessage -Role "warning" -Message $segments
 
-        [string]$Icon = "",  # Optional override
-        [switch]$NoIndent,
-        [switch]$NoNewline
-    )
-
-    # Get icon and color for level
-    $iconInfo = Get-LogIcon -Level $Level -CustomIcon $Icon
-
-    # Build output
-    $indent = if ($NoIndent) { "" } else { "  " }
-
-    Write-Host $indent -NoNewline
-    Write-Host "[" -NoNewline -ForegroundColor DarkGray
-    Write-Host $iconInfo.Icon -NoNewline -ForegroundColor $iconInfo.Color
-    Write-Host "]" -NoNewline -ForegroundColor DarkGray
-    Write-Host " " -NoNewline
-
-    # Render message (simple string or styled segments)
-    if ($Message -is [string]) {
-        Write-Host $Message -NoNewline -ForegroundColor White
-    } else {
-        # Array of styled segments: @{Text="foo"; Color="White"}
-        foreach ($segment in $Message) {
-            Write-Host $segment.Text -NoNewline -ForegroundColor $segment.Color
-        }
-    }
-
-    if (-not $NoNewline) {
-        Write-Host ""
-    }
-}
+# Using helpers
+Write-InstallHint -Tool "fzf" -Description "fuzzy finder" -InstallCommand "winget install fzf"
+Write-ModuleStatus -Name "PSFzf" -Loaded $true -Description "Ctrl+R, Ctrl+T"
 ```
-
-### Phase 2: Icon System with Fallbacks
-
-```powershell
-function Get-LogIcon {
-    param(
-        [string]$Level,
-        [string]$CustomIcon = ""
-    )
-
-    if ($CustomIcon) {
-        return @{ Icon = $CustomIcon; Color = "White" }
-    }
-
-    # Auto-detect Nerd Font support (future enhancement)
-    $hasNerdFont = Test-NerdFontSupport
-
-    $icons = @{
-        success = @{
-            NerdFont = "" # U+F00C
-            Fallback = "✓"
-            Color = "Green"
-        }
-        warning = @{
-            NerdFont = "" # U+F0205
-            Fallback = "!"
-            Color = "Yellow"
-        }
-        error = @{
-            NerdFont = "" # U+F467
-            Fallback = "✗"
-            Color = "Red"
-        }
-        info = @{
-            NerdFont = "" # U+F129
-            Fallback = "i"
-            Color = "Cyan"
-        }
-    }
-
-    $levelIcons = $icons[$Level]
-    $icon = if ($hasNerdFont) { $levelIcons.NerdFont } else { $levelIcons.Fallback }
-
-    return @{
-        Icon = $icon
-        Color = $levelIcons.Color
-    }
-}
-```
-
-### Phase 3: Helper Functions
-
-All helpers compose `Write-Log`:
-
-```powershell
-function Write-InstallHint {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Tool,
-
-        [string]$Description = "",
-
-        [Parameter(Mandatory)]
-        [string]$Command,
-
-        [ValidateSet('info', 'warning')]
-        [string]$Level = 'warning'  # Flexible level!
-    )
-
-    # Build message segments
-    $segments = @(
-        @{Text = "install "; Color = "White"}
-        @{Text = "``$Tool``"; Color = "White"}
-    )
-
-    if ($Description) {
-        $segments += @(
-            @{Text = " for "; Color = "White"}
-            @{Text = $Description; Color = "White"}
-        )
-    }
-
-    $segments += @(
-        @{Text = ": "; Color = "White"}
-        @{Text = $Command; Color = "DarkGray"}
-    )
-
-    Write-Log -Level $Level -Message $segments
-}
-```
-
-## Migration Strategy
-
-### Step 1: Implement `Write-Log` and `Get-LogIcon`
-
-### Step 2: Refactor helpers to use `Write-Log`
-
-**Before:**
-```powershell
-Write-Host "[" -NoNewline -ForegroundColor DarkGray
-Write-Host "!" -NoNewline -ForegroundColor Yellow
-Write-Host "]" -NoNewline -ForegroundColor DarkGray
-Write-Host " install " -NoNewline -ForegroundColor White
-# ... 10 more lines
-```
-
-**After:**
-```powershell
-Write-Log -Level warning -Message $segments
-```
-
-### Step 3: Add new helper functions as needed
-
-### Step 4: Add icon fallback detection (future)
-
-### Step 5: Add theme support (future)
 
 ## Future Enhancements
 
-### Verbosity Levels
-```powershell
-$global:OhMyPwsh_LogLevel = "normal" # quiet | normal | verbose | debug
-```
+### Potential Features
+- **Verbosity levels**: quiet | normal | verbose | debug
+- **Themes**: dark | light | custom color schemes
+- **Log file output**: Optional file logging
+- **Timestamp support**: Add timestamps to messages
+- **Custom icon packs**: User-defined icon sets
 
-### Themes
-```powershell
-$global:OhMyPwsh_Theme = "dark" # dark | light | custom
-```
-
-### Custom Icons
-```powershell
-$global:OhMyPwsh_CustomIcons = @{
-    success = "✅"
-    warning = "⚠️"
-    error = "❌"
-}
-```
+### Extension Points
+The architecture supports easy extension through:
+- New helper functions for specific use cases
+- Custom message segment builders
+- Theme system for color customization
+- Icon override system (already implemented)
 
 ## Benefits
 
-1. **DRY**: No more duplicated Write-Host chains
+1. **DRY**: No duplicated Write-Host chains
 2. **Testable**: Single function to test, not scattered logic
 3. **Maintainable**: Change format in one place
 4. **Extensible**: Add new message types without touching core
-5. **Themeable**: Easy to add themes, icon packs, etc.
-6. **Future-proof**: Ready for icon fallbacks, verbosity, etc.
+5. **Themeable**: Ready for themes and icon packs
+6. **Composable**: Build complex messages from simple parts
+7. **Backward compatible**: Simple strings still work

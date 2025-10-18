@@ -65,35 +65,42 @@ Write-Host $icon -ForegroundColor Green
 ```
 
 ### Logging System
-- **ALL output** goes through `Write-Log` function
+- **ALL output** goes through `Write-StatusMessage` function
 - No direct `Write-Host` chains in code
-- `Write-Log` uses `Get-FallbackIcon` for icons
-- See: [LOGGING.md](./docs/LOGGING.md) for architecture
+- `Write-StatusMessage` uses `Get-FallbackIcon` for icons
+- Supports both simple strings and styled message segments
+- See: [LOGGING-SYSTEM.md](./docs/LOGGING-SYSTEM.md) for architecture
+
+**Example:**
+```powershell
+# Simple string
+Write-StatusMessage -Role "success" -Message "Module loaded"
+
+# Styled segments
+$segments = @(
+    @{Text = "install "; Color = "White"}
+    @{Text = "bat"; Color = "Yellow"}
+    @{Text = ": "; Color = "White"}
+    @{Text = "scoop install bat"; Color = "DarkGray"}
+)
+Write-StatusMessage -Role "warning" -Message $segments
+```
 
 ---
 
-## Current Priorities (in order)
+## Development Principles
 
-1. **Improve logging system**
-   - Implement reusable `Write-Log` function
-   - Architecture: [LOGGING-SYSTEM.md](./todo/001-logging-system.md)
-
-2. **Architect and implement icon fallback system**
-   - `Get-FallbackIcon -Role <name>` function
-   - Nerd Font detection in settings
-   - Icon definitions in `settings/icons.ps1`
-
-3. **Follow DRY principle**
+1. **Follow DRY principle**
    - Make all code reusable
    - Avoid duplication
    - Think composability
 
-4. **Write testable code**
-   - Future task: Test all with Pester
-   - Future task: Test before push (git hooks)
-   - Future task: Test in deployment pipeline
+2. **Write testable code**
+   - Future: Test all with Pester
+   - Future: Test before push (git hooks)
+   - Future: Test in deployment pipeline
 
-5. **Align with user (dev) before implementing**
+3. **Align with user (dev) before implementing**
    - Discuss architecture decisions
    - Think like solution architect, not just coder
    - Solution must be logical and simple to understand
@@ -173,9 +180,23 @@ Currently using **Unicode only** (Nerd Fonts suspended due to rendering issues):
 
 ---
 
-## Completed Features
+## Implemented Features
 
-- ✅ Clear-Host removed from help command
-- ✅ Fallback functions for all enhanced tools
-- ✅ Warning (not error) icons for missing tools
-- ✅ Icon system with `Get-FallbackIcon` (Unicode-based, NF experimental/suspended)
+### Core Systems
+- ✅ **Icon Fallback System** - `Get-FallbackIcon` with Unicode (default) and experimental Nerd Font support
+- ✅ **Status Message System** - `Write-StatusMessage` with granular color control
+- ✅ **Message Segment Composition** - Styled text segments for complex messages
+- ✅ **Logging Helpers** - `Write-InstallHint`, `Write-ToolStatus`, `Write-ModuleStatus`
+
+### Profile Behavior
+- ✅ Zero-error philosophy - profile never fails
+- ✅ Graceful degradation - all enhanced tools are optional
+- ✅ Fallback functions for: bat, eza, ripgrep, fd, delta, fzf, zoxide
+- ✅ Warning (yellow `[!]`) for missing tools, not errors
+- ✅ Clean help output (no Clear-Host)
+
+### Developer Experience
+- ✅ Task management system (./todo/)
+- ✅ Daily runbooks (.claude/runbook/)
+- ✅ Comprehensive documentation
+- ✅ DRY principle - no code duplication
