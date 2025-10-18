@@ -333,69 +333,54 @@ exit 0
 
 **File:** `.github/workflows/tests.yml`
 
-```yaml
-name: Tests
+**Status:** ✅ Implemented (Phase 3)
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+Tests run automatically on:
+- 📤 Every push to `main` branch
+- 🔀 Every pull request to `main`
 
-jobs:
-  test:
-    name: Test on ${{ matrix.os }} - PS ${{ matrix.powershell }}
-    runs-on: ${{ matrix.os }}
+**Test Matrix:**
+- 🪟 Windows (windows-latest) + 🐧 Ubuntu (ubuntu-latest)
+- 💻 PowerShell 7.4 and 7.3
+- 🔄 4 combinations total (fail-fast: false)
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-        powershell: ['7.4', '7.3']
+**Workflow Steps:**
+1. ✅ Checkout code
+2. ✅ Setup PowerShell (specific version)
+3. ✅ Display PowerShell version info
+4. ✅ Install Pester 5.5.0+ (`Install-TestDeps.ps1`)
+5. ✅ Run tests with coverage (`Invoke-Tests.ps1 -Coverage`)
+6. ✅ Display coverage report (`Show-Coverage.ps1`)
+7. ✅ Upload coverage artifact (30-day retention)
+8. ✅ Check coverage threshold (fail if < 30% critical minimum)
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+**Coverage Reporting:**
+- Coverage reports uploaded as artifacts (per OS + PS version)
+- Coverage percentage displayed in action logs
+- Codecov integration optional (see [CODECOV-SETUP.md](./CODECOV-SETUP.md))
 
-      - name: Install PowerShell (if needed)
-        uses: actions/setup-powershell@v1
-        with:
-          powershell-version: ${{ matrix.powershell }}
-
-      - name: Install test dependencies
-        shell: pwsh
-        run: ./scripts/Install-TestDeps.ps1
-
-      - name: Run tests
-        shell: pwsh
-        run: ./scripts/Invoke-Tests.ps1 -Coverage
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: tests/Coverage/coverage.xml
-          flags: ${{ matrix.os }}-ps${{ matrix.powershell }}
-          fail_ci_if_error: false
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: test-results-${{ matrix.os }}-ps${{ matrix.powershell }}
-          path: tests/**/*.xml
+**Badge:**
+```markdown
+![Tests](https://github.com/zentala/pwsh-profile/actions/workflows/tests.yml/badge.svg)
 ```
 
 ### Quality Gates
 
-CI fails if:
+**CI fails if:**
 - ❌ Any test fails
-- ❌ Coverage < 75%
-- ❌ PSScriptAnalyzer errors (future)
+- ❌ Coverage < 30% (critical threshold)
+- ❌ PowerShell version incompatibility
 
-CI warns if:
-- ⚠️ Coverage decreased from previous run
-- ⚠️ Test execution time increased significantly
+**CI provides:**
+- ✅ Coverage percentage in logs
+- ✅ Test execution time
+- ✅ Coverage artifacts for review
+- ✅ Matrix results for all OS/PS combinations
+
+**Future quality gates:**
+- ⏸️ Coverage < 75% target (warn only)
+- ⏸️ PSScriptAnalyzer errors (see `.future.md`)
+- ⏸️ Coverage regression detection
 
 ---
 

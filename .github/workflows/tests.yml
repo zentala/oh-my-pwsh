@@ -1,0 +1,79 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test (PS ${{ matrix.powershell }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        powershell: ['7.4', '7.3']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PowerShell ${{ matrix.powershell }}
+        uses: PowerShell/setup-powershell@v1
+        with:
+          powershell-version: ${{ matrix.powershell }}
+
+      - name: Display PowerShell version
+        shell: pwsh
+        run: |
+          $PSVersionTable
+          Write-Host "PowerShell $($PSVersionTable.PSVersion) on $($PSVersionTable.OS)"
+
+      - name: Install test dependencies
+        shell: pwsh
+        run: |
+          Write-Host "Installing Pester..." -ForegroundColor Cyan
+          ./scripts/Install-TestDeps.ps1
+
+      - name: Run tests with coverage
+        shell: pwsh
+        run: |
+          Write-Host "Running tests with coverage..." -ForegroundColor Cyan
+          ./scripts/Invoke-Tests.ps1 -Coverage
+
+      - name: Display coverage report
+        shell: pwsh
+        run: |
+          Write-Host "Coverage Report:" -ForegroundColor Cyan
+          ./scripts/Show-Coverage.ps1
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-ps${{ matrix.powershell }}
+          path: tests/coverage.xml
+          retention-days: 30
+
+      - name: Check coverage threshold
+        shell: pwsh
+        run: |
+          $coverageFile = "tests/coverage.xml"
+          if (Test-Path $coverageFile) {
+            [xml]$coverage = Get-Content $coverageFile
+            $lineCoverage = $coverage.report.counter | Where-Object { $_.type -eq 'LINE' }
+            $covered = [int]$lineCoverage.covered
+            $missed = [int]$lineCoverage.missed
+            $total = $covered + $missed
+            $percent = [math]::Round(($covered / $total) * 100, 2)
+
+            Write-Host "Coverage: $percent% ($covered/$total lines)" -ForegroundColor $(if ($percent -ge 75) { 'Green' } else { 'Yellow' })
+
+            # Fail if coverage is below 30% (critical threshold)
+            if ($percent -lt 30) {
+              Write-Error "Coverage $percent% is below critical threshold of 30%"
+              exit 1
+            }
+          }

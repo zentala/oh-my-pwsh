@@ -1,5 +1,7 @@
 # 🚀 oh-my-pwsh
 
+![Tests](https://github.com/zentala/pwsh-profile/actions/workflows/tests.yml/badge.svg)
+
 **PowerShell Profile Enhanced** - A modern, modular PowerShell configuration that brings the best of Linux CLI experience to Windows with optional enhanced tools.
 
 <img src="https://cdn.zentala.io/terminal/pwsh.png" alt="PowerShell Terminal Screenshot" style="max-width: 700px; height: auto;">
