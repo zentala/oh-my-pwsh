@@ -13,7 +13,8 @@
       "Bash(git add -A)",
       "Bash(git log -1 --format='%an %ae')",
       "Bash(git mv todo/004-write-status-message.md todo/done/004-write-status-message.md)",
-      "Bash(Get-Date -Format \"yyyy-MM-dd\")"
+      "Bash(Get-Date -Format \"yyyy-MM-dd\")",
+      "Bash(git mv todo/001-logging-system.md todo/done/001-logging-system.md)"
     ],
     "deny": [],
     "ask": []

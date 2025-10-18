@@ -42,15 +42,22 @@ function Write-InstallHint {
         [string]$InstallCommand
     )
 
-    # Build message: install `tool` for description: command
-    $message = "install ``$Tool``"
-    if ($Description) {
-        $message += " for $Description"
-    }
-    $message += ": $InstallCommand"
+    # Build styled message segments for better visual clarity
+    $segments = @(
+        @{Text = "install "; Color = "White"}
+        @{Text = "``$Tool``"; Color = "Yellow"}
+    )
 
-    # Use Write-StatusMessage with warning level
-    Write-StatusMessage -Role "warning" -Message $message
+    if ($Description) {
+        $segments += @{Text = " for "; Color = "White"}
+        $segments += @{Text = $Description; Color = "White"}
+    }
+
+    $segments += @{Text = ": "; Color = "White"}
+    $segments += @{Text = $InstallCommand; Color = "DarkGray"}
+
+    # Use Write-StatusMessage with styled segments
+    Write-StatusMessage -Role "warning" -Message $segments
 }
 
 # ============================================

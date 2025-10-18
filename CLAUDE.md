@@ -155,11 +155,11 @@ Currently using **Unicode only** (Nerd Fonts suspended due to rendering issues):
 
 ## Active Tasks
 
-- [001-logging-system.md](./todo/001-logging-system.md) - **P0** - Reusable logging (unblocked, ready to implement)
 - [003-nerd-font-architecture.md](./todo/003-nerd-font-architecture.md) - **Experimental** - NF partial support
 
 ## Completed Tasks
 
+- [001-logging-system.md](./todo/done/001-logging-system.md) - Message segment composition for styled output
 - [004-write-status-message.md](./todo/done/004-write-status-message.md) - Colored status output (Option B)
 - [002-icon-fallback-system.md](./todo/done/002-icon-fallback-system.md) - Icon system (Unicode working, NF experimental)
 
