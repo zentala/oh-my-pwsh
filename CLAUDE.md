@@ -124,6 +124,84 @@ Write-StatusMessage -Role "warning" -Message $segments
 
 ---
 
+## Testing Requirements
+
+### Primary Goal: Regression Prevention
+
+**User Story:**
+> "As a developer, I want tests to run automatically before pushing, so I don't accidentally remove features that already worked."
+
+### The Problem
+oh-my-pwsh is a console solution with conditional logic for optional dependencies. It's easy to accidentally remove fallback handling for missing packages when developing on a machine where everything is installed.
+
+### Critical Test Scenarios
+
+**ALL tests must verify behavior in these scenarios:**
+
+1. **All tools installed** - bat, eza, ripgrep, fd, delta, fzf, zoxide, oh-my-stats
+2. **Some tools missing** - partial installation (e.g., bat yes, eza no)
+3. **No enhanced tools** - only native PowerShell available
+4. **oh-my-stats missing** - profile still loads without errors
+
+### Testing Fallback Behavior (CRITICAL)
+
+Every enhanced tool MUST have tests for:
+- ✅ Behavior when tool IS installed (happy path)
+- ✅ Behavior when tool is NOT installed (fallback path)
+- ✅ Warning message shown when missing
+- ✅ Fallback to native PowerShell command works
+- ✅ No errors thrown in either case
+
+**Example:**
+```powershell
+Describe "bat fallback" {
+    Context "When bat is NOT installed" {
+        BeforeAll {
+            Mock Get-Command { $null } -ParameterFilter { $Name -eq "bat" }
+        }
+
+        It "Falls back to Get-Content" { }
+        It "Shows warning with install hint" { }
+        It "Does not throw errors" { }
+    }
+}
+```
+
+### Install Script Consistency
+
+**Requirement:** Install script must stay synchronized with profile.
+
+- If install script lists a tool → profile must handle it being missing
+- If profile uses a tool → install script should list it (or document why not)
+- Test verifies this consistency automatically
+
+### Automated Testing
+
+**When tests run:**
+- Locally: `./scripts/Invoke-Tests.ps1`
+- Before commit: Optional git pre-commit hook (< 30 seconds)
+- Before merge: GitHub Actions CI (required, cannot bypass)
+
+**What tests prevent:**
+- Accidentally removing fallback code
+- Breaking conditional handling
+- Profile failing on machines without enhanced tools
+- Regressions in existing features
+
+### Test Coverage Targets
+
+**Overall:** ≥ 75% line coverage
+
+**By Tier:**
+- Tier 1 (core): 90% - `settings/icons.ps1`, `modules/status-output.ps1`
+- Tier 2 (helpers): 80% - `modules/logger.ps1`, `modules/linux-compat.ps1`
+- Tier 3 (features): 70% - `modules/enhanced-tools.ps1`, `modules/help-system.ps1`
+- Tier 4 (orchestration): 60% - `profile.ps1`
+
+**See:** [TESTING-STRATEGY.md](./docs/TESTING-STRATEGY.md) for full strategy
+
+---
+
 ## Development Principles
 
 1. **Follow DRY principle**
@@ -132,9 +210,10 @@ Write-StatusMessage -Role "warning" -Message $segments
    - Think composability
 
 2. **Write testable code**
-   - Future: Test all with Pester
-   - Future: Test before push (git hooks)
-   - Future: Test in deployment pipeline
+   - All code must be testable with Pester
+   - All enhanced tools must have fallback behavior tests
+   - Tests run before push (optional git hook)
+   - Tests run in CI/CD pipeline (required)
 
 3. **Align with user (dev) before implementing**
    - Discuss architecture decisions

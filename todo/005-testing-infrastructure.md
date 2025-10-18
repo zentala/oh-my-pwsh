@@ -119,13 +119,31 @@ Testing Infrastructure
   - Test Write-StatusMessage with strings
   - Test with message segments
   - Test -NoIndent parameter
+- [ ] `tests/Unit/FallbackBehavior.Tests.ps1` **CRITICAL**
+  - Test behavior when bat NOT installed
+  - Test behavior when eza NOT installed
+  - Test behavior when NO tools installed
 - [ ] Run tests: `./scripts/Invoke-Tests.ps1 -Type Unit`
 
 **Success Criteria:**
 - ✅ Pester installed
-- ✅ At least 10 passing unit tests
+- ✅ At least 15 passing unit tests (including fallback tests)
+- ✅ Tests include missing dependency scenarios
 - ✅ Tests run in < 30 seconds
 - ✅ Coverage report generated
+
+**Acceptance Criteria:**
+- [ ] Tests pass on machine with all tools installed
+- [ ] Tests pass on machine with NO tools installed
+- [ ] Profile loads without errors in both scenarios
+- [ ] All fallback paths are tested
+
+**Definition of Done:**
+- [ ] Code written and committed
+- [ ] All tests passing locally
+- [ ] Coverage report shows ≥ 60% overall
+- [ ] No errors when running tests
+- [ ] Documentation updated (README testing section)
 
 ---
 
@@ -165,8 +183,23 @@ Testing Infrastructure
 **Success Criteria:**
 - ✅ 50+ total tests
 - ✅ Coverage ≥ 75% overall
-- ✅ Coverage ≥ 90% for Tier 1 components
+- ✅ Coverage ≥ 90% for Tier 1 components (icons, status-output)
 - ✅ All tests pass consistently
+
+**Acceptance Criteria:**
+- [ ] All modules have unit tests
+- [ ] Integration tests cover message segment composition
+- [ ] Tests cover all missing dependency scenarios
+- [ ] Install script consistency test implemented
+- [ ] Builder pattern for test configs working
+
+**Definition of Done:**
+- [ ] All unit tests written for Tier 1 & 2 modules
+- [ ] Integration tests written and passing
+- [ ] Coverage report shows ≥ 75% overall
+- [ ] All tests passing on machine with/without tools
+- [ ] Test helpers and fixtures created
+- [ ] Code committed with clear commit message
 
 ---
 
@@ -211,8 +244,24 @@ Testing Infrastructure
 **Success Criteria:**
 - ✅ CI runs on every PR
 - ✅ Tests pass in CI
-- ✅ Coverage badge in README
+- ✅ Coverage displayed in GitHub Actions logs
 - ✅ Cannot merge if tests fail
+
+**Acceptance Criteria:**
+- [ ] GitHub Actions workflow runs on push and PR
+- [ ] Tests run on Windows and Ubuntu
+- [ ] Coverage report generated in CI
+- [ ] Coverage displayed in action logs
+- [ ] Failing tests block PR merge
+- [ ] Matrix tests multiple PowerShell versions (7.3, 7.4)
+
+**Definition of Done:**
+- [ ] `.github/workflows/tests.yml` created
+- [ ] Workflow runs successfully on test PR
+- [ ] All tests pass in CI
+- [ ] Coverage visible in action output
+- [ ] Branch protection rules configured (if applicable)
+- [ ] Documentation updated with CI badge/status
 
 ---
 
@@ -252,6 +301,21 @@ Testing Infrastructure
 - ✅ Scaffolding generates valid test files
 - ✅ Watch mode works
 
+**Acceptance Criteria:**
+- [ ] `Install-GitHooks.ps1` works without errors
+- [ ] Pre-commit hook runs only unit tests (fast)
+- [ ] Hook can be bypassed with `--no-verify`
+- [ ] `New-TestFile.ps1` generates valid Pester tests
+- [ ] Watch mode detects file changes correctly
+
+**Definition of Done:**
+- [ ] Git hook script created in `.github/hooks/`
+- [ ] Installation script created and tested
+- [ ] Hook tested on real commit
+- [ ] Test scaffolding script created
+- [ ] Watch mode implemented (optional)
+- [ ] Documentation updated with hook installation instructions
+
 ---
 
 ### Phase 5: E2E & Advanced (Optional) - ~2-3 hours
@@ -286,6 +350,23 @@ Testing Infrastructure
 - ✅ E2E tests cover main scenarios
 - ✅ Performance baseline established
 - ✅ Developer guide complete
+
+**Acceptance Criteria:**
+- [ ] E2E test for full profile load (with all tools)
+- [ ] E2E test for profile load (with NO tools) **CRITICAL**
+- [ ] E2E test for help system
+- [ ] Performance benchmark for profile load time
+- [ ] `docs/TESTING-GUIDE.md` complete with examples
+
+**Definition of Done:**
+- [ ] E2E tests written and passing
+- [ ] Performance baseline documented
+- [ ] Testing guide created with:
+  - How to write unit tests
+  - How to write integration tests
+  - Mocking patterns
+  - Best practices for testing fallbacks
+- [ ] All documentation reviewed and complete
 
 ---
 
@@ -438,6 +519,67 @@ Consider using mutation testing to verify test quality:
 2. Phase 2 (session 2)
 3. Phase 3 + Phase 4 (session 3)
 4. Phase 5 (optional, session 4)
+
+---
+
+## Dependencies & Blockers Matrix
+
+### Phase Dependencies
+
+| Phase | Depends On | Blocks | Can Run In Parallel With |
+|-------|-----------|--------|--------------------------|
+| **Phase 1** | None | Phases 2-5 | None (prerequisite for all) |
+| **Phase 2** | Phase 1 complete | Phase 3, 5 | Phase 4 (partial) |
+| **Phase 3** | Phase 2 complete | None | Phase 4 |
+| **Phase 4** | Phase 1 complete | None | Phases 2, 3 |
+| **Phase 5** | Phase 2 complete | None | Phases 3, 4 |
+
+### External Dependencies
+
+| Dependency | Required For | Mitigation if Unavailable |
+|------------|-------------|---------------------------|
+| **Pester 5.5.0+** | All phases | BLOCKER - must install from PSGallery |
+| **PowerShell 7.0+** | All phases | BLOCKER - upgrade required |
+| **Git** | Phase 4 only | Skip git hooks, continue with other phases |
+| **GitHub Actions access** | Phase 3 only | Run tests locally only |
+| **Internet connection** | Pester install, CI | Use cached Pester if available |
+
+### Internal Dependencies
+
+| Component | Must Work With | Integration Points |
+|-----------|---------------|-------------------|
+| **Tests** | All modules in `modules/` | Source all modules to test |
+| **Install script** | Profile dependencies | Must match profile's optional tools list |
+| **Fallback tests** | `Get-Command` mocking | Mock tool availability |
+| **Coverage reports** | Pester CodeCoverage | Requires Pester 5.x+ |
+| **Git hooks** | Test runner script | Calls `Invoke-Tests.ps1 -Type Unit -Fast` |
+
+### Critical Test Requirements
+
+**These requirements MUST be met for testing infrastructure to be considered complete:**
+
+1. **Test Missing Dependencies** (CRITICAL)
+   - Test profile behavior when bat NOT installed
+   - Test profile behavior when eza NOT installed
+   - Test profile behavior when NO enhanced tools installed
+   - Test profile behavior when oh-my-stats NOT installed
+   - Verify fallback to native PowerShell commands works
+
+2. **Install Script Consistency**
+   - Verify install script lists all optional dependencies
+   - Verify profile has fallback for each tool in install script
+   - Keep install script and profile requirements synchronized
+
+3. **No Regressions**
+   - Tests catch when fallback code is accidentally removed
+   - Tests catch when conditional handling is broken
+   - Tests verify profile loads without errors in all scenarios
+
+4. **Auto-run Before Push**
+   - Git pre-commit hook runs unit tests
+   - Hook is fast (< 30 seconds)
+   - Hook is bypassable for WIP commits
+   - CI remains ultimate quality gate
 
 ---
 

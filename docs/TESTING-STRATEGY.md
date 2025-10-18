@@ -17,19 +17,34 @@ This document describes the comprehensive testing strategy for oh-my-pwsh, inclu
 
 ## Philosophy
 
+### Primary Goal: Regression Prevention
+
+**User Story:**
+> "As a developer, I want tests to run automatically before pushing, so I don't accidentally remove features that already worked."
+
+**The Problem:**
+oh-my-pwsh is a console solution with conditional logic for optional dependencies. It's easy to accidentally remove fallback handling for missing packages (bat, eza, ripgrep, fd, delta, fzf, zoxide, oh-my-stats) when developing on a machine where they're all installed.
+
+**The Solution:**
+Tests must verify behavior in ALL scenarios:
+- ✅ When all tools are installed
+- ✅ When some tools are missing
+- ✅ When NO tools are installed
+- ✅ When oh-my-stats is missing
+
 ### Core Principles
 
-1. **Fast Feedback** - Developers know immediately if they broke something
-2. **High Confidence** - Tests give confidence to refactor and deploy
-3. **Living Documentation** - Tests document how code should behave
-4. **Developer Friendly** - Testing is easy and pleasant, not a burden
-5. **Pragmatic Coverage** - Focus on critical code, not 100% everywhere
+1. **Regression Prevention First** - Catch accidental removal of fallback code
+2. **Fast Feedback** - Developers know immediately if they broke something
+3. **High Confidence** - Tests give confidence to refactor and deploy
+4. **Simple & Focused** - This is not a complex application, keep tests simple
+5. **Pragmatic Coverage** - Focus on critical paths and edge cases
 
 ### What We Value
 
+- ✅ **Testing missing dependencies** over only happy paths
 - ✅ **Fast tests** over comprehensive slow tests
 - ✅ **Clear failures** over cryptic error messages
-- ✅ **Isolated tests** over integration-heavy tests
 - ✅ **Deterministic tests** over flaky tests
 - ✅ **Meaningful coverage** over high percentages
 
@@ -475,6 +490,162 @@ function New-TempConfig {
     return $tempConfig
 }
 ```
+
+---
+
+## Test Data Strategy
+
+### The Critical Test Scenarios
+
+**Primary requirement:** Test behavior when dependencies are MISSING.
+
+oh-my-pwsh must work correctly in these scenarios:
+1. **All tools installed** - bat, eza, ripgrep, fd, delta, fzf, zoxide, oh-my-stats
+2. **Some tools missing** - e.g., bat installed but eza missing
+3. **No enhanced tools** - only native PowerShell commands available
+4. **oh-my-stats missing** - profile still loads without errors
+
+### Static Fixtures
+
+**Location:** `tests/Fixtures/`
+
+**Purpose:** Pre-defined test configurations stored in repository
+
+**Examples:**
+```powershell
+# tests/Fixtures/config-all-tools.ps1
+# Simulates machine with all tools installed
+$global:OhMyPwsh_UseNerdFonts = $false
+# Mock all Get-Command calls to return true
+
+# tests/Fixtures/config-no-tools.ps1
+# Simulates machine with NO tools installed
+$global:OhMyPwsh_UseNerdFonts = $false
+# Mock all Get-Command calls to return $null
+
+# tests/Fixtures/config-partial-tools.ps1
+# Simulates some tools installed
+# bat ✓, eza ✗, ripgrep ✓, fd ✗, etc.
+```
+
+### Builder Pattern for Test Configs
+
+**Purpose:** Flexible, composable test configuration generation
+
+**Implementation:**
+```powershell
+# tests/Helpers/ConfigBuilder.ps1
+
+function New-TestConfig {
+    [CmdletBinding()]
+    param()
+
+    return @{
+        UseNerdFonts = $false
+        Tools = @{}
+    }
+}
+
+function Add-NerdFonts {
+    param([hashtable]$Config)
+    $Config.UseNerdFonts = $true
+    return $Config
+}
+
+function Add-Tools {
+    param(
+        [hashtable]$Config,
+        [string[]]$ToolNames
+    )
+    foreach ($tool in $ToolNames) {
+        $Config.Tools[$tool] = $true
+    }
+    return $Config
+}
+
+# Usage in tests:
+$config = New-TestConfig | Add-Tools -ToolNames @("bat", "eza")
+$config = New-TestConfig | Add-NerdFonts | Add-Tools -ToolNames @("bat", "eza", "ripgrep")
+$config = New-TestConfig  # No tools at all
+```
+
+### Testing Missing Dependencies
+
+**Critical test cases:**
+
+```powershell
+Describe "Enhanced Tools Fallback" {
+    Context "When bat is NOT installed" {
+        BeforeAll {
+            Mock Get-Command { $null } -ParameterFilter { $Name -eq "bat" }
+        }
+
+        It "Falls back to Get-Content" {
+            cat somefile.txt
+            # Should use Get-Content, not throw error
+        }
+
+        It "Shows warning message" {
+            # Should invoke Write-StatusMessage with warning
+            Should -Invoke Write-StatusMessage -ParameterFilter {
+                $Segments.Role -contains "warning"
+            }
+        }
+    }
+
+    Context "When NO tools are installed" {
+        BeforeAll {
+            Mock Get-Command { $null }  # All commands return null
+        }
+
+        It "Profile loads without errors" {
+            { . $PSScriptRoot/../../profile.ps1 } | Should -Not -Throw
+        }
+
+        It "Shows multiple warning messages" {
+            # Should show warnings for each missing tool
+        }
+
+        It "All fallback functions work" {
+            # Test cat, ls, grep, find, etc.
+        }
+    }
+}
+```
+
+### Install Script Testing
+
+**Requirement:** Install script must match profile requirements.
+
+**Link:** If install script installs tools, profile must handle them being missing.
+
+```powershell
+Describe "Install Script Consistency" {
+    It "Lists all optional dependencies" {
+        $installScript = Get-Content scripts/install-dependencies.ps1 -Raw
+
+        # Verify each tool has fallback in profile
+        $tools = @("bat", "eza", "ripgrep", "fd", "delta", "fzf", "zoxide")
+        foreach ($tool in $tools) {
+            $installScript | Should -Match $tool
+            # And verify fallback exists in profile
+            $profile = Get-Content profile.ps1 -Raw
+            $profile | Should -Match "if.*Get-Command $tool"
+        }
+    }
+}
+```
+
+### Test Data Management
+
+**Principles:**
+- ✅ Static fixtures committed to repository
+- ✅ Generated configs via builder pattern
+- ✅ Test results logged to console (no external storage)
+- ✅ Coverage reports in `tests/Coverage/` (gitignored)
+- ❌ No external test data services
+- ❌ No database connections
+- ❌ No API calls (mock external dependencies)
 
 ---
 
