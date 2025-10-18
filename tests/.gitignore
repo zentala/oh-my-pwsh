@@ -1,0 +1,5 @@
+# Test output files
+Coverage/
+*.xml
+*.html
+*TestResults*.json
