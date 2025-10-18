@@ -23,32 +23,32 @@
 
 $script:IconMap = @{
     success = @{
-        NerdFont = "$([char]0xF00C)"  # nf-fa-check
+        NerdFont = "󰄵"  # U+F0135 - direct UTF-8
         Unicode  = "✓"
         Color    = "Green"
     }
     warning = @{
-        NerdFont = "$([char]0xF071)"  # nf-fa-exclamation_triangle
+        NerdFont = "󰗖"  # U+F05D6 - direct UTF-8
         Unicode  = "!"
         Color    = "Yellow"
     }
     error = @{
-        NerdFont = "$([char]0xF467)"  # nf-mdi-close_circle_outline
+        NerdFont = ""  # U+F052F - direct UTF-8
         Unicode  = "x"
         Color    = "Red"
     }
     info = @{
-        NerdFont = "$([char]0xF129)"  # nf-fa-info_circle
+        NerdFont = ""  # U+F0449 - direct UTF-8
         Unicode  = "i"
         Color    = "Cyan"
     }
     tip = @{
-        NerdFont = "$([char]0xF0EB)"  # nf-fa-lightbulb_o
+        NerdFont = ""  # U+F0400 - direct UTF-8
         Unicode  = "※"
         Color    = "Blue"
     }
     question = @{
-        NerdFont = "$([char]0xF128)"  # nf-fa-question
+        NerdFont = ""  # U+F0420 - direct UTF-8
         Unicode  = "?"
         Color    = "Magenta"
     }
@@ -96,51 +96,72 @@ function Get-FallbackIcon {
 
     .DESCRIPTION
     Returns appropriate icon based on Nerd Font availability.
-    All icons in oh-my-pwsh should use this function.
+    Can return standalone icon or formatted status badge.
 
     .PARAMETER Role
     Icon role: success, warning, error, info, tip, question
 
+    .PARAMETER AsStatusBadge
+    If specified, returns formatted badge with icon:
+    - Nerd Font mode: "icon " (no brackets, with trailing space)
+    - Unicode mode: "[icon] " (with brackets and trailing space)
+    If not specified, returns just the icon character.
+
     .OUTPUTS
-    String - Icon character
+    String - Icon character or formatted badge
 
     .EXAMPLE
+    # Standalone icon
     $icon = Get-FallbackIcon -Role "success"
-    Write-Host "[$icon] Operation completed"
+    Write-Host "Done $icon"  # "Done ✓" or "Done 󰄵"
 
     .EXAMPLE
-    $icon = Get-FallbackIcon -Role "warning"
-    Write-Host "[$icon] Optional feature missing" -ForegroundColor Yellow
+    # Status badge
+    $badge = Get-FallbackIcon -Role "success" -AsStatusBadge
+    Write-Host "${badge}Operation completed"  # "[✓] Operation completed" or "󰄵 Operation completed"
     #>
 
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [ValidateSet('success', 'warning', 'error', 'info', 'tip', 'question')]
-        [string]$Role
+        [string]$Role,
+
+        [switch]$AsStatusBadge
     )
 
     # Check for custom icon override
     if ($global:OhMyPwsh_CustomIcons -and $global:OhMyPwsh_CustomIcons.ContainsKey($Role)) {
-        return $global:OhMyPwsh_CustomIcons[$Role]
-    }
-
-    # Get icon definition
-    if (-not $script:IconMap.ContainsKey($Role)) {
-        Write-Warning "Unknown icon role: $Role. Using default '?'"
-        return "?"
-    }
-
-    $iconDef = $script:IconMap[$Role]
-
-    # Check Nerd Font support
-    $useNerdFont = Test-NerdFontSupport
-
-    # Return appropriate icon
-    if ($useNerdFont) {
-        return $iconDef.NerdFont
+        $icon = $global:OhMyPwsh_CustomIcons[$Role]
     } else {
-        return $iconDef.Unicode
+        # Get icon definition
+        if (-not $script:IconMap.ContainsKey($Role)) {
+            Write-Warning "Unknown icon role: $Role. Using default '?'"
+            $icon = "?"
+        } else {
+            $iconDef = $script:IconMap[$Role]
+
+            # Check Nerd Font support
+            $useNerdFont = Test-NerdFontSupport
+
+            # Get appropriate icon
+            if ($useNerdFont) {
+                $icon = $iconDef.NerdFont
+            } else {
+                $icon = $iconDef.Unicode
+            }
+        }
+    }
+
+    # Format as status badge if requested
+    if ($AsStatusBadge) {
+        if (Test-NerdFontSupport) {
+            return "$icon "  # Nerd Font: "󰄵 " (icon + space, no brackets)
+        } else {
+            return "[$icon] "  # Unicode: "[✓] " (brackets + space)
+        }
+    } else {
+        return $icon  # Standalone: just the icon
     }
 }
 

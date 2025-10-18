@@ -3,6 +3,7 @@
 ## Active
 
 - [001-logging-system.md](./001-logging-system.md) - `active` - Reusable logging architecture
+- [003-nerd-font-architecture.md](./003-nerd-font-architecture.md) - `active` - NF without brackets, Unicode with brackets
 
 ## Backlog
 

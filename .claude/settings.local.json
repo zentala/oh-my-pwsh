@@ -10,7 +10,8 @@
       "Read(//c/code/oh-my-stats/**)",
       "Bash(git push)",
       "Read(//c/Users/Lenovo/.claude/**)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(git log -1 --format='%an %ae')"
     ],
     "deny": [],
     "ask": []

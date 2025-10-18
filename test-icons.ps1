@@ -6,34 +6,46 @@ $ProfileRoot = Split-Path -Parent $PSCommandPath
 
 Write-Host "`n=== Icon System Test ===`n" -ForegroundColor Cyan
 
-# Test 1: Unicode mode (default)
-Write-Host "TEST 1: Unicode fallback mode (default)" -ForegroundColor Yellow
+# Test 1: Unicode mode (default) - Status Badge
+Write-Host "TEST 1: Unicode fallback mode (status badges)" -ForegroundColor Yellow
 $global:OhMyPwsh_UseNerdFonts = $false
 $global:OhMyPwsh_CustomIcons = $null  # Clear custom icons
 
 foreach ($role in @('success', 'warning', 'error', 'info', 'tip', 'question')) {
-    $icon = Get-FallbackIcon -Role $role
+    $badge = Get-FallbackIcon -Role $role -AsStatusBadge
     $color = Get-IconColor -Role $role
-    Write-Host "  [$icon] $role" -ForegroundColor $color
+    Write-Host "  ${badge}Module loaded" -ForegroundColor $color
 }
 
 Write-Host ""
 
-# Test 2: Nerd Font mode
-Write-Host "TEST 2: Nerd Font mode (if you have NF installed)" -ForegroundColor Yellow
+# Test 2: Nerd Font mode - Status Badge
+Write-Host "TEST 2: Nerd Font mode (status badges - no brackets)" -ForegroundColor Yellow
 $global:OhMyPwsh_UseNerdFonts = $true
 $global:OhMyPwsh_CustomIcons = $null  # Clear custom icons
 
 foreach ($role in @('success', 'warning', 'error', 'info', 'tip', 'question')) {
-    $icon = Get-FallbackIcon -Role $role
+    $badge = Get-FallbackIcon -Role $role -AsStatusBadge
     $color = Get-IconColor -Role $role
-    Write-Host "  [$icon] $role" -ForegroundColor $color
+    Write-Host "  ${badge}Module loaded" -ForegroundColor $color
 }
 
 Write-Host ""
 
-# Test 3: Custom icons
-Write-Host "TEST 3: Custom icon overrides" -ForegroundColor Yellow
+# Test 3: Standalone icons (no formatting)
+Write-Host "TEST 3: Standalone icons (no brackets, no space)" -ForegroundColor Yellow
+$global:OhMyPwsh_UseNerdFonts = $false
+
+foreach ($role in @('success', 'warning', 'error', 'info', 'tip', 'question')) {
+    $icon = Get-FallbackIcon -Role $role
+    $color = Get-IconColor -Role $role
+    Write-Host "  $role icon: $icon" -ForegroundColor $color
+}
+
+Write-Host ""
+
+# Test 4: Custom icons
+Write-Host "TEST 4: Custom icon overrides" -ForegroundColor Yellow
 $global:OhMyPwsh_CustomIcons = @{
     success = "✅"
     warning = "⚠️"
