@@ -1,8 +1,19 @@
 # oh-my-pwsh - Claude Development Guide
 
+> **📅 Last Active:** 2025-10-19 | **Status:** ✅ Stable, Production Ready
+>
+> **⚠️ Personal Project:** May be abandoned at any time. Documentation is designed to be self-explanatory for anyone resuming work (including Future-Me after months/years).
+
 ## Project Overview
 
 PowerShell profile with zero-error philosophy and graceful degradation for power users.
+
+**Quick Start (If Resuming After Inactivity):**
+1. Read [STATUS.md](./STATUS.md) - Current state, what works, what doesn't
+2. Read [DECISIONS.md](./DECISIONS.md) - Why we made certain choices
+3. Read [.claude/runbook/2025-10-18.md](./.claude/runbook/2025-10-18.md) - Latest session log
+4. Run tests: `./scripts/Invoke-Tests.ps1 -Coverage`
+5. Check CI: `gh run list --limit 5`
 
 ---
 
@@ -225,8 +236,25 @@ Describe "bat fallback" {
 
 ## Design Principles
 
-### Target Users
-Power users who want visibility into what's happening
+### `Target Users`
+ - Power users
+ - often ex Linux users
+ - appreciate beauty
+
+### Value propostion for `Target Users`
+
+- painless migration from Linux (bash/zsh) to Windows(pwsh):
+  - preserving your own CLI habbits
+  - learingn about PWSH commands on the way 
+  - discovering ecosystem of (awesome) pwsh apps
+
+### Your role
+
+When designing for `Target Users`, enter into role of `Developer Experience Engienier`.
+Design theirs `User Stories`, align them with me and and then design under those stories. 
+Eg. eg 
+ - migration from windows: `Linux console user wants to discover pwsh apps ecosystem that will help him quickly migrate from oh-my-zsh. He is missing his CLI code editor... therefore when user will call some linux editor command we will propose him to install anlternative.` 
+ - exploeration: 
 
 ### Error Philosophy
 - Profile should NEVER fail or throw errors
@@ -256,7 +284,7 @@ Power users who want visibility into what's happening
 ### Levels
 - `[✓]` Green - feature loaded successfully
 - `[!]` Yellow - optional feature not installed (with install command)
-- `[�]` Red - critical error (use sparingly, Nerd Font f467)
+- `[ ]` Red - critical error (use sparingly, Nerd Font f467)
 - `[i]` Cyan - informational message (Nerd Font f129)
 
 ### Icon Mappings (Unicode - Active)
@@ -278,6 +306,7 @@ Currently using **Unicode only** (Nerd Fonts suspended due to rendering issues):
 ## Active Tasks
 
 - [005-testing-infrastructure.md](./todo/005-testing-infrastructure.md) - **P1** - Testing infrastructure with Pester, CI/CD, coverage
+- [006-contributors-documentation.md](./todo/006-contributors-documentation.md) - **P2** - Contributors guide with tech stack and Claude Code info
 - [003-nerd-font-architecture.md](./todo/003-nerd-font-architecture.md) - **Experimental** - NF partial support (suspended)
 
 ## Completed Tasks

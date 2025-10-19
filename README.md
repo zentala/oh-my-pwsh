@@ -1,10 +1,33 @@
 # 🚀 oh-my-pwsh
 
 ![Tests](https://github.com/zentala/pwsh-profile/actions/workflows/tests.yml/badge.svg)
+[![Stability](https://img.shields.io/badge/stability-alpha-f4d03f.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#alpha)
+[![Version](https://img.shields.io/badge/version-0.0.1--alpha-blue.svg)](https://github.com/zentala/pwsh-profile/releases)
+[![PowerShell](https://img.shields.io/badge/PowerShell-7.x-5391FE.svg?logo=powershell&logoColor=white)](https://github.com/PowerShell/PowerShell)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078D6.svg?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
 **PowerShell Profile Enhanced** - A modern, modular PowerShell configuration that brings the best of Linux CLI experience to Windows with optional enhanced tools.
 
+> ⚠️ **Alpha Status:** This project works for the maintainer but is under active development. APIs and configuration may change. Use in production at your own risk.
+
 <img src="https://cdn.zentala.io/terminal/pwsh.png" alt="PowerShell Terminal Screenshot" style="max-width: 700px; height: auto;">
+
+---
+
+## 🎯 For Linux Users Migrating to Windows
+
+**Missing your beloved bash/zsh workflow?** You're not alone.
+
+oh-my-pwsh helps you **painlessly migrate from Linux to Windows** while:
+- ✅ **Preserving your CLI habits** - Keep using `ls -la`, `grep`, `cat`, `touch`, and other familiar commands
+- 📚 **Learning PowerShell on the way** - Optional learning mode shows PowerShell equivalents for every command
+- 🚀 **Discovering awesome PowerShell apps** - Modern tools like `bat`, `eza`, `ripgrep`, `fzf`, and `zoxide`
+- 💎 **Appreciating beauty** - Stunning prompt with [Oh My Posh](https://ohmyposh.dev/) (PowerShell's answer to oh-my-zsh)
+
+**For power users** - Every feature is optional, every tool has fallbacks, and you control your environment.
+
+---
 
 ## ✨ What You Get
 
@@ -26,6 +49,7 @@
 - **Quick navigation** - `..`, `...`, `....`, `~`, `mkcd newdir`, `z folder`
 - **Helper functions** - `touch`, `mkcd`, `sudo`, and more
 - **Learning mode** - See PowerShell equivalents for each command
+- **Smart suggestions** _(Coming Soon)_ - Type `vim` or `ee`? Get suggestions for Windows alternatives (`nvim`, `micro`) with one-click install
 
 ### ⚡ Enhanced Tools (Optional)
 Modern alternatives to classic Unix tools:
@@ -319,6 +343,57 @@ Install-EnhancedTools
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
+## 🧪 Testing
+
+This project has comprehensive test coverage with automated CI/CD.
+
+**Run Tests:**
+```powershell
+# Run all tests
+./scripts/Invoke-Tests.ps1
+
+# Run with coverage
+./scripts/Invoke-Tests.ps1 -Coverage
+
+# Watch mode (auto-rerun on changes)
+./scripts/Invoke-Tests.ps1 -Watch
+
+# Install git hooks (optional)
+./scripts/Install-GitHooks.ps1
+```
+
+**Status:**
+- ✅ 176 passing tests
+- ✅ 100% coverage on critical modules
+- ✅ CI/CD on GitHub Actions (Windows + Ubuntu)
+- ✅ Pre-commit hooks available (optional)
+
+**Documentation:**
+- [Testing Strategy](./docs/TESTING-STRATEGY.md) - Complete testing approach
+- [STATUS.md](./STATUS.md) - Project status & quick start
+- [DECISIONS.md](./DECISIONS.md) - Key decisions & context
+
+---
+
+## 📚 Documentation
+
+**For Users:**
+- [STATUS.md](./STATUS.md) - Project snapshot, what works, known issues
+- [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Module structure
+- [TESTING-STRATEGY.md](./docs/TESTING-STRATEGY.md) - How to test
+
+**For Developers:**
+- [DECISIONS.md](./DECISIONS.md) - Why we made certain choices
+- [ADRs](./adr/) - Architecture Decision Records
+- [Runbook](./.claude/runbook/2025-10-18.md) - Implementation session log
+- [.future.md](./.future.md) - Future enhancement ideas
+
+**Quick Links:**
+- [Task 005](./todo/005-testing-infrastructure.md) - Testing infrastructure plan
+- [Git Hooks Guide](./docs/TESTING-STRATEGY.md#git-hooks-optional) - Optional pre-commit setup
+
+---
+
 ## 📝 License
 
 MIT - Paweł Żentała © 2025
@@ -326,3 +401,5 @@ MIT - Paweł Żentała © 2025
 ---
 
 **Made with ❤️ for modern Windows terminal experience**
+
+> **Project Status:** ✅ Stable & Tested (see [STATUS.md](./STATUS.md) for current state)
