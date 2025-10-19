@@ -34,13 +34,19 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -le 5) {
 Set-Location $repoRoot
 
 # Paths
-$sourceHook = Join-Path $repoRoot ".github/hooks/pre-commit"
+$sourceHookWrapper = Join-Path $repoRoot ".github/hooks/pre-commit"
+$sourceHookPs1 = Join-Path $repoRoot ".github/hooks/pre-commit.ps1"
 $gitHooksDir = Join-Path $repoRoot ".git/hooks"
-$targetHook = Join-Path $gitHooksDir "pre-commit"
+$targetHookWrapper = Join-Path $gitHooksDir "pre-commit"
+$targetHookPs1 = Join-Path $gitHooksDir "pre-commit.ps1"
 
-# Verify source hook exists
-if (-not (Test-Path $sourceHook)) {
-    Write-Error "❌ Source hook not found: $sourceHook"
+# Verify source hooks exist
+if (-not (Test-Path $sourceHookWrapper)) {
+    Write-Error "❌ Source hook wrapper not found: $sourceHookWrapper"
+    exit 1
+}
+if (-not (Test-Path $sourceHookPs1)) {
+    Write-Error "❌ Source hook script not found: $sourceHookPs1"
     exit 1
 }
 
@@ -51,7 +57,7 @@ if (-not (Test-Path $gitHooksDir)) {
 }
 
 # Check if hook already exists
-if (Test-Path $targetHook) {
+if ((Test-Path $targetHookWrapper) -or (Test-Path $targetHookPs1)) {
     Write-Host "⚠️  Pre-commit hook already exists" -ForegroundColor Yellow
     $response = Read-Host "   Overwrite? (y/N)"
     if ($response -notmatch '^[Yy]') {
@@ -60,14 +66,15 @@ if (Test-Path $targetHook) {
     }
 }
 
-# Copy hook
+# Copy hooks (both wrapper and PowerShell script)
 try {
     Write-Host "📋 Installing pre-commit hook..." -ForegroundColor Cyan
-    Copy-Item -Path $sourceHook -Destination $targetHook -Force
+    Copy-Item -Path $sourceHookWrapper -Destination $targetHookWrapper -Force
+    Copy-Item -Path $sourceHookPs1 -Destination $targetHookPs1 -Force
 
     # Make executable (Unix-like systems)
     if (-not $IsWindows -and $PSVersionTable.PSVersion.Major -gt 5) {
-        chmod +x $targetHook 2>$null
+        chmod +x $targetHookWrapper 2>$null
     }
 
     Write-Host ""
@@ -82,7 +89,7 @@ try {
     Write-Host "   git commit --no-verify -m ""WIP: quick save""" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "🗑️  Uninstall anytime:" -ForegroundColor Cyan
-    Write-Host "   Remove-Item .git/hooks/pre-commit" -ForegroundColor DarkGray
+    Write-Host "   Remove-Item .git/hooks/pre-commit*" -ForegroundColor DarkGray
     Write-Host ""
 
     exit 0
