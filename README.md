@@ -9,13 +9,13 @@
 
 **Painless migration from Linux (bash/zsh) to Windows PowerShell.** Keep your CLI habits, learn PowerShell gradually, discover modern tools—all with a beautiful terminal that works out of the box.
 
-**Key features:** Linux-style aliases • Advanced shell history • Optional teacher mode • Smart tool suggestions • Beautiful icons & colors • Comprehensive tests
+**Key features:** Linux-style aliases • Advanced shell history • Teacher mode • Custom help system • Beautiful stats (MOTD) • Smart tool suggestions • Icons & colors
 
 <img src="https://cdn.zentala.io/terminal/pwsh.png" alt="PowerShell Terminal Screenshot" style="max-width: 700px; height: auto;">
 
 > ⚠️ **Alpha Status:** This project works for the maintainer (PowerShell 7.5.x, Windows 11) but is **not guaranteed to work perfectly on other system configurations**. Built on multiple external dependencies whose interfaces may change over time. Not actively maintained—may cause failures. **Use in production at your own risk.**
 
-> 💡 **For Power Users:** Love tinkering? Want a better Windows terminal? **Help us test, refine, and evolve this project!** We've built comprehensive tests and detailed prompts for Claude Code to make development easier. **[Join development →](./CONTRIBUTING.md)**
+> 🚀 **[Join Development](./CONTRIBUTING.md):** Like the idea? With tests and Claude Code context, it's ready for collaboration and community input. Test, improve & extend oh-my-pwsh with me!
 
 ---
 
