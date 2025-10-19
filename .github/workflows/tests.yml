@@ -8,23 +8,17 @@ on:
 
 jobs:
   test:
-    name: Test (PS ${{ matrix.powershell }} on ${{ matrix.os }})
+    name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
-        powershell: ['7.4', '7.3']
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup PowerShell ${{ matrix.powershell }}
-        uses: PowerShell/setup-powershell@v1
-        with:
-          powershell-version: ${{ matrix.powershell }}
 
       - name: Display PowerShell version
         shell: pwsh
@@ -53,14 +47,14 @@ jobs:
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.os }}-ps${{ matrix.powershell }}
-          path: tests/coverage.xml
+          name: coverage-${{ matrix.os }}
+          path: tests/Coverage/coverage.xml
           retention-days: 30
 
       - name: Check coverage threshold
         shell: pwsh
         run: |
-          $coverageFile = "tests/coverage.xml"
+          $coverageFile = "tests/Coverage/coverage.xml"
           if (Test-Path $coverageFile) {
             [xml]$coverage = Get-Content $coverageFile
             $lineCoverage = $coverage.report.counter | Where-Object { $_.type -eq 'LINE' }
