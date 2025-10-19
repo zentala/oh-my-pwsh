@@ -72,7 +72,7 @@ if (-not $Quick) {
 
     # Demo 5: Confirmation
     Write-SpectreRule "Confirmation"
-    $confirm = Read-SpectreConfirm -Prompt "Proceed with installation?" -DefaultAnswer $true
+    $confirm = Read-SpectreConfirm -Prompt "Proceed with installation?"
     if (-not $confirm) {
         Write-Host "Installation cancelled." -ForegroundColor Yellow
         exit 0
