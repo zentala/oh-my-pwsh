@@ -8,12 +8,16 @@
 
 PowerShell profile with zero-error philosophy and graceful degradation for power users.
 
-**Quick Start (If Resuming After Inactivity):**
-1. Read [STATUS.md](./STATUS.md) - Current state, what works, what doesn't
+**🚨 ALWAYS START HERE:**
+1. **Read [STATUS.md](./STATUS.md)** ← **SOURCE OF TRUTH** - Current state, what works, next tasks
 2. Read [DECISIONS.md](./DECISIONS.md) - Why we made certain choices
-3. Read [.claude/runbook/2025-10-18.md](./.claude/runbook/2025-10-18.md) - Latest session log
+3. Read [.claude/runbook/2025-10-19.md](./.claude/runbook/2025-10-19.md) - Latest session log
 4. Run tests: `./scripts/Invoke-Tests.ps1 -Coverage`
 5. Check CI: `gh run list --limit 5`
+
+**When starting ANY work:**
+- Check STATUS.md for task queue and current priority
+- Update STATUS.md when completing tasks or changing priorities
 
 ---
 

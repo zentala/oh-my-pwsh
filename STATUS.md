@@ -2,9 +2,22 @@
 
 > **Last Updated:** 2025-10-19
 > **Status:** ✅ STABLE - Production Ready
-> **Success:** Core testing infrastructure complete (4/5 phases, 80%)
+> **Current Goal:** Task 010 - TUI Research & Demo (Spectre.Console)
+> **Success:** Testing infrastructure complete (180 tests, 4 E2E smoke tests, CI/CD operational)
 >
 > **⚠️ Important:** This is a personal project. It may be abandoned at any time. This document ensures anyone (including Future-Me) can understand what works and what doesn't, even after months/years of inactivity.
+
+---
+
+## 🎯 Next Steps (Task Queue)
+
+**Current Priority:**
+1. **Task 010** - TUI Research & Demo (Spectre.Console) - `backlog` → `active`
+2. Task 006 - Contributors Documentation - `active` - P2
+3. Task 009 - Interactive Installer - `backlog` - P2
+4. Task 007 - Smart Editor Suggestions - `backlog` - P3
+
+See [todo/INDEX.md](./todo/INDEX.md) for complete task list.
 
 ---
 
@@ -13,11 +26,12 @@
 ### Testing Infrastructure - FULLY OPERATIONAL ✅
 
 **Statistics:**
-- 176 passing tests (0 failures)
+- 180 passing tests (0 failures) - **+4 E2E smoke tests**
+- Unit: 164 tests | Integration: 12 tests | **E2E: 4 tests**
 - 36.69% overall coverage (182/496 lines)
 - 100% coverage on critical modules (logger, status-output)
 - CI/CD on GitHub Actions (Windows + Ubuntu)
-- Test execution: ~11 seconds
+- Test execution: ~11s (unit), ~19s (E2E)
 
 **What You Can Use:**
 ```bash
@@ -69,11 +83,11 @@
 
 ## ⏸️ What's NOT Done (Known Gaps)
 
-### Phase 5: E2E & Advanced (Optional) - NOT STARTED
-- E2E tests for full profile loading
-- Performance benchmarks (load time tracking)
-- Mutation testing
-- PSScriptAnalyzer integration
+### Phase 5: E2E & Advanced (Partially Done)
+- ✅ E2E smoke tests (4 tests: load with/without tools, zero-error, performance)
+- ❌ Performance benchmarks (load time tracking over time)
+- ❌ Mutation testing
+- ❌ PSScriptAnalyzer integration
 
 ### Test Coverage Gaps
 - `profile.ps1` - No E2E tests (56 lines untested)
