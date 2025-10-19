@@ -104,8 +104,7 @@ $config.Run.PassThru = $true
 
 # Fast mode optimizations
 if ($Fast) {
-    Write-Host "⚡ Fast mode enabled (parallel, no coverage)" -ForegroundColor Cyan
-    $config.Run.Parallel = $true
+    Write-Host "⚡ Fast mode enabled (no coverage)" -ForegroundColor Cyan
     $config.CodeCoverage.Enabled = $false
     $config.Output.Verbosity = 'Normal'
 }
