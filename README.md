@@ -7,11 +7,13 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6.svg?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
-**PowerShell Profile Enhanced** - A modern, modular PowerShell configuration that brings the best of Linux CLI experience to Windows with optional enhanced tools.
-
-> ⚠️ **Alpha Status:** This project works for the maintainer but is under active development. APIs and configuration may change. Use in production at your own risk.
+A modern, modular PowerShell profile that brings the best of Linux CLI experience to Windows. Built for power users who want graceful degradation, beautiful terminal, and full control over their environment.
 
 <img src="https://cdn.zentala.io/terminal/pwsh.png" alt="PowerShell Terminal Screenshot" style="max-width: 700px; height: auto;">
+
+> ⚠️ **Alpha Status:** This project works for the maintainer (PowerShell 7.5.x, Windows 11) but is **not guaranteed to work perfectly on other system configurations**. Built on multiple external dependencies whose interfaces may change over time. Not actively maintained—may cause failures. **Use in production at your own risk.**
+
+> 💡 **For Power Users:** Love tinkering? Want a better Windows terminal? **Help us test, refine, and evolve this project!** We've built comprehensive tests and detailed prompts for Claude Code to make development easier. **[Join development →](./CONTRIBUTORS.md)**
 
 ---
 
