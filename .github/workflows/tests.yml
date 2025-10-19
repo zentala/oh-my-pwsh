@@ -36,7 +36,9 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Running tests with coverage..." -ForegroundColor Cyan
+          $ErrorActionPreference = 'Continue'
           ./scripts/Invoke-Tests.ps1 -Coverage
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Display coverage report
         shell: pwsh
