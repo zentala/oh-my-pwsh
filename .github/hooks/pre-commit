@@ -1,19 +1,20 @@
 #!/bin/sh
 #
-# oh-my-pwsh pre-commit hook (Windows batch wrapper)
+# oh-my-pwsh pre-commit hook
 #
-# This wrapper calls the PowerShell script pre-commit.ps1
-# Git on Windows doesn't properly handle PowerShell shebangs,
-# so we use this sh/batch hybrid wrapper.
+# This hook runs unit tests before allowing a commit.
+# It helps catch breaking changes early.
+#
+# OPTIONAL: This hook is bypassable with --no-verify
+#   git commit --no-verify -m "WIP: quick save"
+#
+# Installation:
+#   ./scripts/Install-GitHooks.ps1
 #
 
-# Batch portion (Windows)
-@echo off 2>nul || goto :batch
-:batch
-pwsh.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0pre-commit.ps1"
-exit /b %ERRORLEVEL%
+# Find the directory where this hook is located
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Shell portion (Unix/Linux/macOS)
-:posix
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec pwsh -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_DIR/pre-commit.ps1"
+# Call the PowerShell script
+pwsh.exe -NoProfile -ExecutionPolicy Bypass -File "$HOOK_DIR/pre-commit.ps1"
+exit $?

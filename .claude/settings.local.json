@@ -41,7 +41,15 @@
       "Bash(git add docs/ARCHITECTURE.md)",
       "Bash(git add README.md specs/)",
       "Bash(git add CLAUDE.md specs/smart-editor-suggestions.md todo/backlog/007-smart-editor-suggestions.md modules/data/)",
-      "Bash(git add .claude/runbook/2025-10-19.md)"
+      "Bash(git add .claude/runbook/2025-10-19.md)",
+      "Bash(Get-Command git)",
+      "Bash(Select-Object Source)",
+      "Bash(git --version)",
+      "Bash(mv .github/hooks/pre-commit .github/hooks/pre-commit.ps1)",
+      "Bash(git add .github/hooks/)",
+      "Bash(git add scripts/Install-GitHooks.ps1)",
+      "Bash(git checkout scripts/Install-GitHooks.ps1)",
+      "Bash(git add .claude/settings.local.json .github/hooks/pre-commit)"
     ],
     "deny": [],
     "ask": []
