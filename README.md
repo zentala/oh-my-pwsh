@@ -7,13 +7,15 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6.svg?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
-A modern, modular PowerShell profile that brings the best of Linux CLI experience to Windows. Built for power users who want graceful degradation, beautiful terminal, and full control over their environment.
+**Painless migration from Linux (bash/zsh) to Windows PowerShell.** Keep your CLI habits, learn PowerShell gradually, discover modern tools—all with a beautiful terminal that works out of the box.
+
+**Key features:** Linux-style aliases • Advanced shell history • Optional teacher mode • Smart tool suggestions • Beautiful icons & colors • Comprehensive tests
 
 <img src="https://cdn.zentala.io/terminal/pwsh.png" alt="PowerShell Terminal Screenshot" style="max-width: 700px; height: auto;">
 
 > ⚠️ **Alpha Status:** This project works for the maintainer (PowerShell 7.5.x, Windows 11) but is **not guaranteed to work perfectly on other system configurations**. Built on multiple external dependencies whose interfaces may change over time. Not actively maintained—may cause failures. **Use in production at your own risk.**
 
-> 💡 **For Power Users:** Love tinkering? Want a better Windows terminal? **Help us test, refine, and evolve this project!** We've built comprehensive tests and detailed prompts for Claude Code to make development easier. **[Join development →](./CONTRIBUTORS.md)**
+> 💡 **For Power Users:** Love tinkering? Want a better Windows terminal? **Help us test, refine, and evolve this project!** We've built comprehensive tests and detailed prompts for Claude Code to make development easier. **[Join development →](./CONTRIBUTING.md)**
 
 ---
 
@@ -46,12 +48,15 @@ oh-my-pwsh helps you **painlessly migrate from Linux to Windows** while:
 - **[gsudo](https://github.com/gerardog/gsudo)** - Linux-style `sudo` for Windows
 
 ### 🐧 Linux-Style Experience
-- **Aliases** - `ls -la`, `grep`, `cat`, `touch`, `mkdir -p`, `which`, `curl`, `wget`, and more
+- **Aliases** - `ls -la`, `grep`, `cat`, `touch`, `mkdir -p`, `which`, `curl`, `wget`, and more ([docs](./docs/linux-compatibility.md))
 - **Git shortcuts** - `gs` (status), `ga` (add), `gc "msg"` (commit), `gp` (push), `gl` (log)
 - **Quick navigation** - `..`, `...`, `....`, `~`, `mkcd newdir`, `z folder`
 - **Helper functions** - `touch`, `mkcd`, `sudo`, and more
-- **Learning mode** - See PowerShell equivalents for each command
-- **Smart suggestions** _(Coming Soon)_ - Type `vim` or `ee`? Get suggestions for Windows alternatives (`nvim`, `micro`) with one-click install
+- **Teacher mode** - Optional PowerShell learning assistant (see [config.example.ps1](./config.example.ps1#L51-L56))
+  - Shows PowerShell equivalents: `mkdir → New-Item -ItemType Directory`
+  - Enabled by default to help you learn while working
+  - Fully customizable verbosity levels _(Enhancement planned - [task 011](./todo/backlog/011-teacher-mode-verbosity-levels.md))_
+- **Smart suggestions** _(Planned)_ - Missing command hints ([task 007](./todo/backlog/007-smart-editor-suggestions.md))
 
 ### ⚡ Enhanced Tools (Optional)
 Modern alternatives to classic Unix tools:

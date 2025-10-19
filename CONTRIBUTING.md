@@ -1,6 +1,6 @@
 # Contributing to oh-my-pwsh
 
-Thank you for your interest in contributing to **oh-my-pwsh**! This guide will help you get started with development.
+Want to customize your terminal or contribute to the project? This guide covers everything from basic customization to full development workflow.
 
 ---
 
