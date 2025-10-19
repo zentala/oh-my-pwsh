@@ -73,25 +73,26 @@ oh-my-pwsh uses a unique documentation system designed to work with both human d
 
 ### For Developers (Humans & AI)
 
-- **`README.md`** - User-facing documentation (how to use oh-my-pwsh)
-- **`CONTRIBUTORS.md`** (this file) - How to contribute to the project
+- **[`README.md`](./README.md)** - User-facing documentation (how to use oh-my-pwsh)
+- **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** (this file) - How to contribute to the project
 - **`docs/`** - Technical documentation for implemented features
-  - `ARCHITECTURE.md` - Project structure and module organization
-  - `TESTING-STRATEGY.md` - Testing philosophy and coverage targets
-  - `LOGGING-SYSTEM.md` - How to use the status message system
+  - [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) - Project structure and module organization
+  - [`TESTING-STRATEGY.md`](./docs/TESTING-STRATEGY.md) - Testing philosophy and coverage targets
+  - [`LOGGING-SYSTEM.md`](./docs/LOGGING-SYSTEM.md) - How to use the status message system
+  - [`linux-compatibility.md`](./docs/linux-compatibility.md) - Linux command aliases and compatibility
 
 ### Development Tracking
 
 - **`todo/`** - Task management
-  - `todo/INDEX.md` - Master list of all tasks with status
+  - [`todo/INDEX.md`](./todo/INDEX.md) - Master list of all tasks with status
   - `todo/NNN-task-name.md` - Active tasks
-  - `todo/done/` - Completed tasks
-  - `todo/backlog/` - Unrefined ideas
+  - [`todo/done/`](./todo/done/) - Completed tasks
+  - [`todo/backlog/`](./todo/backlog/) - Unrefined ideas
 
-- **`adr/`** - Architecture Decision Records
+- **[`adr/`](./adr/)** - Architecture Decision Records
   - Uses [MADR](https://adr.github.io/madr/) format
   - Documents important architectural and design decisions
-  - See `adr/README.md` for conventions
+  - See [`adr/README.md`](./adr/README.md) for conventions
 
 ---
 
