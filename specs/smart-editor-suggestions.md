@@ -186,45 +186,87 @@ Press any key to continue...
 
 ---
 
-## Data Structure (Conceptual)
+## Data Structure
 
-### Command Suggestion Entry
+**File:** `modules/data/command-suggestions.psd1`
 
-**For each missing command, we define:**
+**Format:** PowerShell Data File (native, fast, supports comments)
 
+**Structure:** Two-section normalized design
+1. **Tools** - Full tool definitions (single source of truth)
+2. **Suggestions** - Map missing commands → tool references
+
+### Why This Design?
+
+**DRY Principle:** Tool definition exists once, referenced multiple times
+- `micro` defined once in Tools
+- Referenced by: `ee` suggestion, `vim` alternative, `nano` alternative
+
+**Easy to Extend:** Add new tool = one entry in Tools, reference it in Suggestions
+
+**Reusable:** Tool data can be used for:
+- Command suggestions
+- Help system ("tell me about micro")
+- Installer tool lists
+- Statistics ("what editors are installed")
+
+### Example Structure
+
+```powershell
+@{
+    Tools = @{
+        micro = @{
+            Name = 'micro'
+            Category = 'editor'
+            Description = 'Easy terminal editor (most similar to ee)'
+            InstallCmd = 'winget install zyedidia.micro'
+            PackageManager = 'winget'
+            RequiresAdmin = $false
+            LinuxEquiv = @('ee', 'nano')
+            Features = @('Mouse support', 'Familiar keys', '...')
+            Homepage = 'https://micro-editor.github.io'
+        }
+        nano = @{ ... }
+        nvim = @{ ... }
+    }
+
+    Suggestions = @{
+        ee = @{
+            Primary = 'micro'              # Reference to Tools.micro
+            Alternatives = @('nano', 'nvim')  # References to other tools
+            Context = 'Easy Editor from FreeBSD'
+        }
+        vim = @{
+            Primary = 'nvim'
+            Alternatives = @('vim', 'micro')
+            Context = 'Vi IMproved text editor'
+        }
+    }
+}
 ```
-Command: ee
-Category: editor
-Description: Easy Editor (FreeBSD text editor)
 
-Primary Alternative:
-  Name: micro
-  Description: Easy terminal editor (most similar to 'ee')
-  Why: Mouse support, familiar keybindings, no learning curve
-  Linux Equivalent: ee, nano
-  Install Command: winget install zyedidia.micro
-  Package Manager: winget
-  Requires Admin: No
-  Features:
-    - Mouse support
-    - Familiar keybindings (Ctrl+S, Ctrl+Q)
-    - Syntax highlighting
-    - No learning curve
+### How Code Uses It
 
-Other Alternatives:
-  - nano (Simple Unix-style editor)
-  - nvim (Modern Vim - advanced)
+```powershell
+# Load once
+$Data = Import-PowerShellDataFile "modules/data/command-suggestions.psd1"
+
+# When 'ee' not found:
+$suggestion = $Data.Suggestions['ee']           # Get suggestion
+$tool = $Data.Tools[$suggestion.Primary]        # Get full tool details
+Show-Suggestion -Tool $tool -Alternatives $suggestion.Alternatives
 ```
 
 ### Categories
 
 **Phase 1 (MVP):**
-- Editors: `ee`, `vim`, `vi`, `nano`, `emacs`
+- Editors: `ee`, `vim`, `vi`, `nano`
+- System: `sudo`
 
 **Phase 2 (Future):**
-- Package managers: `apt`, `yum`, `brew`
-- Network tools: (curl already exists, but maybe suggest better usage)
-- System tools: `htop`, `tree`, `top`
+- Package managers: `apt`, `yum`, `brew` → `winget`, `scoop`
+- System monitoring: `htop`, `top` → `btm`, `ntop`
+- Network: curl alternatives, dig → Resolve-DnsName
 
 ---
 

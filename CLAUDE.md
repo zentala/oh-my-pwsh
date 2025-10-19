@@ -32,6 +32,30 @@ PowerShell profile with zero-error philosophy and graceful degradation for power
 - Move tasks between folders with `mv` (don't rewrite with tools)
 - `./todo/INDEX.md` - master list with status: `backlog | active | done | abandoned`
 - Link all active tasks in this CLAUDE.md
+- **When planning tasks:** Always plan tests alongside features (test-first mindset)
+
+### Feature Specifications
+- **Location**: `./specs/FEATURE-NAME.md`
+- **Purpose**: Single source of truth for how a feature should look/behave (NOT code)
+- **Contents:**
+  - Feature vision and user stories
+  - UI/UX flow (text-based mockups)
+  - Expected behavior and edge cases
+  - NOT implementation details - only WHAT, not HOW
+- **Linking:**
+  - Each spec links to related task(s)
+  - Each spec links to test file(s)
+  - Each spec links to implementation file(s)
+- **Why:** Preserve the vision of what/why we want, separate from implementation
+- **Format:** Pure text, mockups, user flows - no code examples
+
+**Example:**
+```
+./specs/smart-editor-suggestions.md
+├─ Links to: ./todo/007-smart-editor-suggestions.md
+├─ Links to: ./tests/modules/command-suggestions.Tests.ps1
+└─ Links to: ./modules/command-suggestions.ps1
+```
 
 ### Daily Runbooks
 - **Location**: `.claude/runbook/YYYY-MM-DD.md`

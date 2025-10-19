@@ -3,6 +3,9 @@
 **Status:** backlog
 **Priority:** P3 (nice-to-have)
 **Created:** 2025-10-19
+**Spec:** [specs/smart-editor-suggestions.md](../../specs/smart-editor-suggestions.md) - **READ THIS FIRST**
+**Implementation:** `modules/command-suggestions.ps1` (pending)
+**Tests:** `tests/modules/command-suggestions.Tests.ps1` (pending)
 
 ## Goal
 
@@ -201,18 +204,113 @@ Missing your favorite Linux editor? oh-my-pwsh will detect when you try to use c
 Interactive installation prompts help you discover the PowerShell ecosystem.
 ```
 
+## Architecture Overview
+
+**See:** [specs/smart-editor-suggestions.md](../../specs/smart-editor-suggestions.md) for complete UX flows and behavior
+
+### File Structure
+
+```
+modules/
+├── command-suggestions.ps1           # Main module (hook, detection, prompts)
+├── command-suggestions-install.ps1   # Installation logic (package managers, admin)
+└── data/
+    └── command-suggestions.psd1      # Tool definitions and mappings
+
+tests/
+└── modules/
+    ├── command-suggestions.Tests.ps1
+    └── command-suggestions-install.Tests.ps1
+
+specs/
+└── smart-editor-suggestions.md       # Feature spec (UX, flows, behavior)
+```
+
+### Data Structure (Normalized)
+
+**Two-section design:**
+1. **Tools** - Full tool definitions (single source of truth)
+2. **Suggestions** - Map missing commands → tool references (DRY)
+
+**Example:**
+```powershell
+@{
+    Tools = @{
+        micro = @{ Name='micro'; InstallCmd='winget install ...'; Features=@(...) }
+        nano = @{ ... }
+    }
+    Suggestions = @{
+        ee = @{ Primary='micro'; Alternatives=@('nano','nvim') }
+    }
+}
+```
+
+**Benefits:**
+- DRY: Tool defined once, referenced many times
+- Easy to extend: Add tool → reference it
+- Reusable: Data for suggestions, help, installer, stats
+
+### Implementation Phases
+
+**Phase 1: Simple ASCII (No TUI dependency)**
+- Implement with basic `Read-Host` and `Write-Host`
+- Works on all systems, zero dependencies
+- Good enough for MVP
+
+**Phase 2: Enhanced TUI (After Task 010)**
+- Upgrade to Spectre.Console for rich menus
+- Better progress bars, colored selections
+- Keep Phase 1 as fallback
+
 ## Tasks
 
-- [ ] Design `CommandNotFoundAction` hook architecture
-- [ ] Create `modules/editor-suggestions.ps1`
-- [ ] Build editor mapping table (ee, vim, nano, emacs, vi)
-- [ ] Implement `Show-EditorSuggestion` with interactive prompt
-- [ ] Implement `Install-Tool` helper
-- [ ] Add configuration option
-- [ ] Write tests for suggestion logic
-- [ ] Write tests for fallback when winget not available
-- [ ] Update README with "Coming Soon" section
+### Data & Architecture
+- [x] Design data structure (normalized .psd1 format)
+- [x] Create `modules/data/command-suggestions.psd1`
+- [x] Document architecture in spec
+
+### Core Implementation
+- [ ] Create `modules/command-suggestions.ps1` (hook, detection, prompts)
+- [ ] Implement `CommandNotFoundAction` hook (PowerShell 7.4+)
+- [ ] Implement `Show-CommandSuggestion` (primary suggestion display)
+- [ ] Implement `Show-Alternatives` (when user selects "More")
+- [ ] Load and parse .psd1 data file
+
+### Installation Logic
+- [ ] Create `modules/command-suggestions-install.ps1`
+- [ ] Implement package manager detection (winget, scoop priority)
+- [ ] Implement `Install-SuggestedTool` function
+- [ ] Handle admin rights (offer gsudo, show manual steps)
+- [ ] Handle no package manager (show instructions)
+- [ ] Verify installation after install
+
+### Configuration
+- [ ] Add config options to `config.example.ps1`:
+  - `$OhMyPwsh_EnableCommandSuggestions`
+  - `$OhMyPwsh_AutoInstallSuggested`
+  - `$OhMyPwsh_PreferGsudo`
+  - `$OhMyPwsh_DisabledSuggestions`
+- [ ] Session-based "don't ask again" tracking
+
+### Testing (Test-First!)
+- [ ] Create `tests/modules/command-suggestions.Tests.ps1`
+- [ ] Test: Suggestion detection (ee→micro, vim→nvim)
+- [ ] Test: Ignore existing commands
+- [ ] Test: Package manager detection and priority
+- [ ] Test: User input handling (Yes/Cancel/More)
+- [ ] Test: Alternative selection (1/2/3)
+- [ ] Create `tests/modules/command-suggestions-install.Tests.ps1`
+- [ ] Test: Installation via winget (mocked)
+- [ ] Test: Installation via scoop (mocked)
+- [ ] Test: Admin rights detection
+- [ ] Test: gsudo availability and usage
+- [ ] Test: Manual installation instructions
+- [ ] Test: Installation verification
+
+### Documentation
+- [ ] Update README "Coming Soon" section (already done)
 - [ ] Create ADR for CommandNotFoundAction approach
+- [ ] Document configuration options
 
 ## Technical Considerations
 
