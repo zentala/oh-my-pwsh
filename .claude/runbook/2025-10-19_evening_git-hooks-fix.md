@@ -46,34 +46,35 @@ $ git commit -m "test"
 ✅ Tests executed successfully
 ```
 
-### 3. Known Issue: Install-GitHooks.ps1
+### 3. Fixed Install-GitHooks.ps1 ✅
 
-**Status:** ⚠️ Script still copies only one file
+**Problem:** Script was copying only one file (wrapper)
 
-**Current code:**
-```powershell
-Copy-Item -Path $sourceHook -Destination $targetHook -Force
+**Solution:** Created dedicated PowerShell script to update the file
+- Created `/tmp/fix-install-hooks.ps1` with line-by-line replacement logic
+- Avoided Edit tool issues by using separate script
+- Updated all variable names: `$sourceHook` → `$sourceHookWrapper`, `$targetHookPs1`, etc.
+- Added verification for both files
+- Updated uninstall message to use wildcard: `pre-commit*`
+
+**Testing:**
+```bash
+$ rm .git/hooks/pre-commit*
+$ pwsh -File scripts/Install-GitHooks.ps1
+✅ Git hooks installed successfully!
+
+$ ls .git/hooks/pre-commit*
+pre-commit      # wrapper
+pre-commit.ps1  # PowerShell script
 ```
 
-**Needed:**
-```powershell
-Copy-Item -Path $sourceHookWrapper -Destination $targetHookWrapper -Force
-Copy-Item -Path $sourceHookPs1 -Destination $targetHookPs1 -Force
-```
-
-**Why not fixed:**
-- File kept getting modified during edits (race condition with file watcher?)
-- Tried multiple approaches (Edit tool, PowerShell Replace, sed, heredoc)
-- All failed due to escaping issues or file locks
-
-**Workaround:**
-- Hooks manually installed in `.git/hooks/` → **working correctly**
-- Future developers: Copy both files manually or update Install-GitHooks.ps1
+**Result:** ✅ Script now correctly installs both files
 
 ## Files Modified
 
 - [.github/hooks/pre-commit](../../.github/hooks/pre-commit) - NEW shell wrapper
 - [.github/hooks/pre-commit.ps1](../../.github/hooks/pre-commit.ps1) - PowerShell script
+- [scripts/Install-GitHooks.ps1](../../scripts/Install-GitHooks.ps1) - FIXED to copy both files
 - [.git/hooks/pre-commit](../../.git/hooks/pre-commit) - Installed wrapper
 - [.git/hooks/pre-commit.ps1](../../.git/hooks/pre-commit.ps1) - Installed script
 
@@ -82,6 +83,8 @@ Copy-Item -Path $sourceHookPs1 -Destination $targetHookPs1 -Force
 - `dd47ec0` - fix(git-hooks): Windows PowerShell compatibility for pre-commit hook
 - `5db18e9` - docs(todo): moved 006-contributing-docs.md to done
 - `f4761e6` - chore(claude): settings.local.json
+- `6b3ceb5` - docs(runbook): Document git hooks fix session
+- `a05d904` - fix(git-hooks): Update Install-GitHooks.ps1 to copy both hook files ⭐
 
 ## Decisions Made
 
@@ -90,15 +93,11 @@ Copy-Item -Path $sourceHookPs1 -Destination $targetHookPs1 -Force
    - PowerShell script has required extension
    - Clean separation of concerns
 
-2. **Install-GitHooks.ps1 as Known Issue**
-   - Hook system works (manually installed)
-   - Script update blocked by tooling issues
-   - Documented for future fix
-
-3. **Manual installation acceptable**
-   - Project in alpha, solo dev
-   - Hooks optional (ADR-004)
-   - Can be bypassed with `--no-verify`
+2. **Install-GitHooks.ps1 fix approach**
+   - Edit tool had race conditions/file locks
+   - Created separate PowerShell script for transformation
+   - Line-by-line replacement with clear logic
+   - Tested installation before committing
 
 ## Tech Notes
 
@@ -112,12 +111,23 @@ Copy-Item -Path $sourceHookPs1 -Destination $targetHookPs1 -Force
 hook (no extension) → sh wrapper → calls hook.ps1
 ```
 
+## Lessons Learned
+
+1. **Edit tool limitations**
+   - Can fail with file watchers/locks on Windows
+   - Workaround: Create separate PowerShell script for complex transformations
+   - Line-by-line processing more reliable than regex replace
+
+2. **Testing is critical**
+   - Deleted hooks and ran install script to verify
+   - Both files correctly installed
+   - Hook execution confirmed working
+
 ## Next Steps
 
-- [ ] Update Install-GitHooks.ps1 when tooling allows (manual editing?)
+- [x] Update Install-GitHooks.ps1 ✅ (fixed via `/tmp/fix-install-hooks.ps1`)
 - [ ] Test hook on another machine to verify portability
-- [ ] Consider adding to CONTRIBUTING.md: "Manual hook installation"
 
 ---
 
-**Status:** ✅ Hook system working - Install script needs future update
+**Status:** ✅ COMPLETE - Hook system fully working, install script fixed
