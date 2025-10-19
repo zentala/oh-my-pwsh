@@ -2,8 +2,8 @@
 
 > **Last Updated:** 2025-10-19
 > **Status:** ✅ STABLE - Production Ready
-> **Current Goal:** Task 010 - TUI Research & Demo (Spectre.Console)
-> **Success:** Testing infrastructure complete (180 tests, 4 E2E smoke tests, CI/CD operational)
+> **Current Goal:** Task 009 - Interactive Installer (UNBLOCKED)
+> **Success:** Testing infrastructure + TUI library chosen (PwshSpectreConsole)
 >
 > **⚠️ Important:** This is a personal project. It may be abandoned at any time. This document ensures anyone (including Future-Me) can understand what works and what doesn't, even after months/years of inactivity.
 
@@ -12,10 +12,13 @@
 ## 🎯 Next Steps (Task Queue)
 
 **Current Priority:**
-1. **Task 010** - TUI Research & Demo (Spectre.Console) - `backlog` → `active`
+1. **Task 009** - Interactive Installer - `backlog` → `active` - **UNBLOCKED** ✅
 2. Task 006 - Contributors Documentation - `active` - P2
-3. Task 009 - Interactive Installer - `backlog` - P2
-4. Task 007 - Smart Editor Suggestions - `backlog` - P3
+3. Task 007 - Smart Editor Suggestions - `backlog` - P3
+4. Task 011 - Teacher Mode with Verbosity - `backlog` - P3
+
+**Recently Completed:**
+- ✅ Task 010 - TUI Research & Demo (PwshSpectreConsole chosen, demo working)
 
 See [todo/INDEX.md](./todo/INDEX.md) for complete task list.
 
