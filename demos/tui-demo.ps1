@@ -112,4 +112,5 @@ Write-Host ""
 
 Write-Host "Demo complete! 🎉" -ForegroundColor Magenta
 Write-Host ""
-Write-Host "Recommendation: Use PwshSpectreConsole for interactive installer" -ForegroundColor Cyan
+Write-Host "PwshSpectreConsole provides beautiful TUI for PowerShell" -ForegroundColor Cyan
+Write-Host "See: https://github.com/ShaunLawrie/PwshSpectreConsole" -ForegroundColor DarkGray
