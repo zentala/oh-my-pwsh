@@ -272,6 +272,52 @@ Write-StatusMessage -Role "warning" -Message $segments
 
 ---
 
+## Testing
+
+### Test Organization
+
+**Tests are located in `./tests/` directory with three-tier structure:**
+
+```
+tests/
+├── Unit/              # Unit tests - isolated component testing
+│   ├── Icons.Tests.ps1                 # Icon fallback system (Tier 1: 90%)
+│   ├── StatusMessage.Tests.ps1         # Status output & message segments (Tier 1: 90%)
+│   ├── Logger.Tests.ps1                # Logging helpers (Tier 2: 80%)
+│   ├── LinuxCompat.Tests.ps1          # Linux command compatibility (Tier 2: 80%)
+│   ├── EnhancedTools.Tests.ps1        # Enhanced tool wrappers (Tier 3: 70%)
+│   ├── FallbackBehavior.Tests.ps1     # Fallback when tools missing (Tier 3: 70%)
+│   └── TuiDemo.Tests.ps1              # TUI demo functionality (Tier 3: 70%)
+├── Integration/       # Integration tests - component interaction
+│   └── LoggingFlow.Tests.ps1          # Icon → StatusMessage → Logger chain
+├── E2E/              # End-to-end tests - full profile scenarios
+│   └── ProfileLoad.Tests.ps1          # Smoke test - profile loads without errors
+├── Helpers/          # Test utilities and templates
+│   ├── TestHelpers.ps1                # Shared test utilities
+│   └── Templates/                      # Test templates for new tests
+└── Fixtures/         # Test data and mock configurations
+    ├── config-all-tools.ps1           # All enhanced tools available
+    ├── config-no-tools.ps1            # No tools (pure fallback)
+    └── config-partial-tools.ps1       # Some tools available
+```
+
+**See:** [tests/README.md](./tests/README.md) for detailed test documentation
+
+### Running Tests
+
+```powershell
+# Fast mode (before commit)
+.\scripts\Invoke-Tests.ps1
+
+# With coverage (before PR)
+.\scripts\Invoke-Tests.ps1 -Coverage
+
+# Specific test file
+.\scripts\Invoke-Tests.ps1 -TestPath tests/Unit/Icons.Tests.ps1
+```
+
+---
+
 ## Testing Requirements
 
 ### Primary Goal: Regression Prevention
