@@ -57,7 +57,9 @@
       "Bash(md5sum scripts/Install-GitHooks.ps1)",
       "Bash(pwsh.exe -NoProfile -Command '\n$content = Get-Content scripts/Install-GitHooks.ps1 -Raw\n$content = $content -replace ''(?s)# Paths\\r?\\n\\$sourceHook = Join-Path \\$repoRoot \"\"\\.github/hooks/pre-commit\"\"\\r?\\n\\$gitHooksDir = Join-Path \\$repoRoot \"\"\\.git/hooks\"\"\\r?\\n\\$targetHook = Join-Path \\$gitHooksDir \"\"pre-commit\"\"'', ''# Paths\n$sourceHookWrapper = Join-Path $repoRoot \"\".github/hooks/pre-commit\"\"\n$sourceHookPs1 = Join-Path $repoRoot \"\".github/hooks/pre-commit.ps1\"\"\n$gitHooksDir = Join-Path $repoRoot \"\".git/hooks\"\"\n$targetHookWrapper = Join-Path $gitHooksDir \"\"pre-commit\"\"\n$targetHookPs1 = Join-Path $gitHooksDir \"\"pre-commit.ps1\"\"''\n$content | Set-Content scripts/Install-GitHooks.ps1.new -NoNewline\nMove-Item scripts/Install-GitHooks.ps1.new scripts/Install-GitHooks.ps1 -Force\nWrite-Host \"\"Step 1 done\"\"\n')",
       "Bash(pwsh.exe -NoProfile -File C:/tmp/fix-install-hooks.ps1)",
-      "Bash(git add .claude/settings.local.json)"
+      "Bash(git add .claude/settings.local.json)",
+      "Bash(git clone:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

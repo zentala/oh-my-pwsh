@@ -115,13 +115,15 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 # OH MY POSH - Theme Engine
 # ============================================
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    $omp_config = "$env:POSH_THEMES_PATH\quick-term.omp.json"
-    if (Test-Path $omp_config) {
-        oh-my-posh init pwsh --config $omp_config 2>$null | Invoke-Expression
-        Write-ModuleStatus -Name "Oh My Posh" -Loaded $true
-    } else {
-        Write-ProfileStatus -Level warning -Primary "Oh My Posh" -Secondary "theme not found"
+    # Try user's custom theme first, then fallback to standard theme
+    $omp_config = "$ProfileRoot\themes\quick-term.omp.json"
+    if (-not (Test-Path $omp_config)) {
+        # Use standard paradox theme from Oh My Posh
+        $omp_config = "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/paradox.omp.json"
     }
+
+    oh-my-posh init pwsh --config $omp_config 2>$null | Invoke-Expression
+    Write-ModuleStatus -Name "Oh My Posh" -Loaded $true
 } else {
     Write-ProfileStatus -Level warning -Primary "Oh My Posh" -Secondary "winget install JanDeDobbeleer.OhMyPosh"
 }
