@@ -1,6 +1,6 @@
 # oh-my-pwsh - Claude Development Guide
 
-> **📅 Last Active:** 2025-10-19 | **Status:** ✅ Stable, Production Ready
+> **📅 Last Active:** 2025-11-05 | **Status:** ✅ Stable, Production Ready
 >
 > **⚠️ Personal Project:** May be abandoned at any time. Documentation is designed to be self-explanatory for anyone resuming work (including Future-Me after months/years).
 
@@ -14,6 +14,64 @@ PowerShell profile with zero-error philosophy and graceful degradation for power
 3. Read [.claude/runbook/2025-10-18.md](./.claude/runbook/2025-10-18.md) - Latest session log
 4. Run tests: `./scripts/Invoke-Tests.ps1 -Coverage`
 5. Check CI: `gh run list --limit 5`
+
+---
+
+## Installation Scripts
+
+### For End Users (Complete Setup)
+
+**`scripts/Install-OhMyPwsh.ps1`** - One-click installer (recommended)
+```powershell
+pwsh -ExecutionPolicy Bypass -File scripts\Install-OhMyPwsh.ps1
+```
+
+**What it does:**
+1. Clones [oh-my-stats](https://github.com/zentala/oh-my-stats) to `C:\code\oh-my-stats`
+2. Runs `install-dependencies.ps1` (see below)
+3. Configures PowerShell profile (backs up existing)
+4. Creates `config.ps1` from `config.example.ps1`
+
+**Parameters:**
+- `-SkipDependencies` - Skip dependency installation
+- `-SkipProfile` - Skip profile configuration
+
+**Post-install:** User must restart terminal for PATH updates (fzf, zoxide)
+
+### For Development Setup
+
+**`scripts/install-dependencies.ps1`** - Install required dependencies only
+
+**Installs via winget:**
+- Oh My Posh (prompt theme engine)
+- fzf (fuzzy finder)
+- zoxide (smart directory jumping)
+- gsudo (sudo for Windows)
+
+**Installs PowerShell modules:**
+- PSReadLine (better command line editing)
+- posh-git (git integration)
+- Terminal-Icons (file icons)
+- PSFzf (fuzzy finder integration)
+
+**Does NOT install:**
+- Enhanced tools (bat, eza, ripgrep, fd, delta) - these are optional
+- Use `Install-EnhancedTools` function after profile loads
+- Requires scoop package manager
+
+### Enhanced Tools (Optional)
+
+**`Install-EnhancedTools`** - Function in `modules/enhanced-tools.ps1`
+
+**Prerequisites:** Scoop package manager
+```powershell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+irm get.scoop.sh | iex
+```
+
+**Installs:** bat, eza, ripgrep, fd, delta
+
+**Why separate?** Graceful degradation - profile works without enhanced tools
 
 ---
 

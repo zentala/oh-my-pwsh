@@ -88,7 +88,44 @@ oh-my-pwsh/
 
 ## 🔧 Installation
 
-### Quick Install (Automated)
+### ⚡ One-Click Install (Recommended)
+
+**Complete automated setup - installs everything you need:**
+
+```powershell
+# 1. Clone the repo
+cd C:\code
+git clone git@github.com:zentala/pwsh-profile.git
+cd pwsh-profile
+
+# 2. Run one-click installer
+pwsh -ExecutionPolicy Bypass -File scripts\Install-OhMyPwsh.ps1
+
+# 3. Restart your terminal (required!)
+```
+
+**What it does:**
+- ✅ Clones [oh-my-stats](https://github.com/zentala/oh-my-stats) automatically
+- ✅ Installs all dependencies (Oh My Posh, fzf, zoxide, gsudo, PowerShell modules)
+- ✅ Configures your PowerShell profile (backs up existing one)
+- ✅ Creates config.ps1 from template
+- ℹ️ Enhanced tools (bat, eza, ripgrep, fd, delta) are optional - see below
+
+**After restart, optionally install enhanced tools:**
+```powershell
+# Install scoop (if not already installed)
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+irm get.scoop.sh | iex
+
+# Install enhanced tools
+Install-EnhancedTools
+```
+
+---
+
+### 🔧 Quick Install (Alternative Method)
+
+If you prefer step-by-step control:
 
 1. **Clone the repo:**
    ```powershell
@@ -104,11 +141,9 @@ oh-my-pwsh/
 
    This will automatically check and install all dependencies!
 
-3. **Configure oh-my-pwsh:**
+3. **Configure PowerShell profile manually:**
    ```powershell
-   # Config will be created automatically on first run
-   # Edit it to customize your experience
-   code config.ps1
+   # See Manual Install section below for profile configuration
    ```
 
 4. **Install enhanced tools (optional but recommended):**
