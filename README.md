@@ -113,12 +113,30 @@ pwsh -ExecutionPolicy Bypass -File scripts\Install-OhMyPwsh.ps1
 
 **Optional parameters:**
 ```powershell
-# Install enhanced tools automatically
+# Install everything (dependencies + enhanced tools + nerd fonts)
+pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallEnhancedTools -InstallNerdFonts
+
+# Install enhanced tools only
 pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallEnhancedTools
+
+# Install Nerd Fonts only
+pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallNerdFonts
 
 # Skip certain steps
 pwsh -File scripts\Install-OhMyPwsh.ps1 -SkipDependencies  # Skip dependency install
 pwsh -File scripts\Install-OhMyPwsh.ps1 -SkipProfile      # Skip profile configuration
+```
+
+**About Nerd Fonts:**
+Nerd Fonts provide beautiful icons and glyphs for your terminal. Recommended fonts:
+- **CaskaydiaCove Nerd Font** (recommended) - Microsoft's Cascadia Code with icons
+- **FiraCode Nerd Font** - Popular with excellent ligatures
+- **JetBrainsMono Nerd Font** - Optimized for IDEs
+- **Meslo Nerd Font** - Safe choice, very readable
+
+After installing, configure your terminal to use the Nerd Font, then enable in `config.ps1`:
+```powershell
+$global:OhMyPwsh_UseNerdFonts = $true
 ```
 
 **After restart, enhanced tools (if not installed above):**

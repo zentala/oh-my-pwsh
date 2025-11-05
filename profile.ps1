@@ -121,6 +121,7 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 . "$ProfileRoot\modules\linux-compat.ps1"      # Linux-style aliases
 . "$ProfileRoot\modules\enhanced-tools.ps1"    # bat, eza, ripgrep, fd, delta
 . "$ProfileRoot\modules\help-system.ps1"       # Custom help command
+. "$ProfileRoot\modules\nerd-fonts.ps1"        # Nerd Fonts detection and installer
 
 # Legacy aliases (deprecated - use linux-compat.ps1 instead)
 # . "$ProfileRoot\modules\aliases.ps1"
@@ -144,6 +145,12 @@ if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
 
 # PSReadLine
 Write-ModuleStatus -Name "PSReadLine" -Loaded ([bool](Get-Module PSReadLine))
+
+# Nerd Fonts check (informational only)
+$nfCheck = Test-NerdFontInstalled
+if (-not $nfCheck.Installed) {
+    Write-InstallHint -Tool "Nerd Fonts" -Description "better terminal icons" -InstallCommand "Install-NerdFonts"
+}
 
 Write-Host ""  # Empty line after all modules
 

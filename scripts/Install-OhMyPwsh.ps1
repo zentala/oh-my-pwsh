@@ -7,7 +7,8 @@
 param(
     [switch]$SkipDependencies,
     [switch]$SkipProfile,
-    [switch]$InstallEnhancedTools
+    [switch]$InstallEnhancedTools,
+    [switch]$InstallNerdFonts
 )
 
 Write-Host "`n🚀 oh-my-pwsh - Complete Installation`n" -ForegroundColor Cyan
@@ -167,6 +168,33 @@ if ($InstallEnhancedTools) {
 }
 
 # ============================================
+# 6. Install Nerd Fonts (if requested)
+# ============================================
+if ($InstallNerdFonts) {
+    Write-Host "`n🔤 Step 6: Installing Nerd Fonts...`n" -ForegroundColor Yellow
+
+    # Load the nerd-fonts module
+    $NerdFontsModule = Join-Path $ProfileRoot "modules\nerd-fonts.ps1"
+    if (Test-Path $NerdFontsModule) {
+        . $NerdFontsModule
+
+        # Check if already installed
+        $nfCheck = Test-NerdFontInstalled
+        if ($nfCheck.Installed) {
+            Write-Host "  ✓ Nerd Fonts already installed:" -ForegroundColor Green
+            foreach ($font in $nfCheck.Fonts) {
+                Write-Host "    • $font" -ForegroundColor Gray
+            }
+        } else {
+            # Install recommended font (CascadiaCode-NF) in silent mode
+            Install-NerdFonts -Silent
+        }
+    } else {
+        Write-Host "  ⚠ Nerd Fonts module not found" -ForegroundColor Yellow
+    }
+}
+
+# ============================================
 # Summary
 # ============================================
 Write-Host "`n" + "="*60 -ForegroundColor Cyan
@@ -179,19 +207,34 @@ Write-Host "     • fzf and zoxide will only work after restart" -ForegroundCol
 if ($InstallEnhancedTools) {
     Write-Host "     • Enhanced tools (bat, eza, etc.) will be available" -ForegroundColor Gray
 }
+if ($InstallNerdFonts) {
+    Write-Host "     • After restart, configure terminal to use the installed Nerd Font" -ForegroundColor Gray
+}
 Write-Host ""
+
+$step = 2
 
 if (-not $InstallEnhancedTools) {
-    Write-Host "  2. 🎨 (Optional) Install enhanced tools:" -ForegroundColor Cyan
+    Write-Host "  $step. 🎨 (Optional) Install enhanced tools:" -ForegroundColor Cyan
     Write-Host "     • Run: pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallEnhancedTools" -ForegroundColor Gray
     Write-Host "     • Or in profile: Install-EnhancedTools" -ForegroundColor Gray
-    Write-Host "     • Or manually: scoop install bat eza ripgrep fd delta" -ForegroundColor Gray
     Write-Host ""
+    $step++
 }
 
-Write-Host "  $(if ($InstallEnhancedTools) { '2' } else { '3' }). 📚 Type 'help' to see available commands" -ForegroundColor Cyan
+if (-not $InstallNerdFonts) {
+    Write-Host "  $step. 🔤 (Optional) Install Nerd Fonts for better icons:" -ForegroundColor Cyan
+    Write-Host "     • Run: pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallNerdFonts" -ForegroundColor Gray
+    Write-Host "     • Or in profile: Install-NerdFonts" -ForegroundColor Gray
+    Write-Host "     • Then enable in config.ps1: `$global:OhMyPwsh_UseNerdFonts = `$true" -ForegroundColor Gray
+    Write-Host ""
+    $step++
+}
+
+Write-Host "  $step. 📚 Type 'help' to see available commands" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  $(if ($InstallEnhancedTools) { '3' } else { '4' }). ⚙️  Customize your config: code $ConfigPath" -ForegroundColor Cyan
+$step++
+Write-Host "  $step. ⚙️  Customize your config: code $ConfigPath" -ForegroundColor Cyan
 Write-Host ""
 
 Write-Host "="*60 -ForegroundColor Cyan

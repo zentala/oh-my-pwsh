@@ -35,6 +35,7 @@ pwsh -ExecutionPolicy Bypass -File scripts\Install-OhMyPwsh.ps1
 
 **Parameters:**
 - `-InstallEnhancedTools` - Also install bat, eza, ripgrep, fd, delta (via scoop)
+- `-InstallNerdFonts` - Also install Nerd Fonts (CaskaydiaCove recommended, via scoop)
 - `-SkipDependencies` - Skip dependency installation
 - `-SkipProfile` - Skip profile configuration
 
@@ -43,6 +44,7 @@ pwsh -ExecutionPolicy Bypass -File scripts\Install-OhMyPwsh.ps1
 - ⚠️ Works anywhere - not hardcoded to C:\code
 - 📁 oh-my-stats cloned to: `../oh-my-stats` (relative to oh-my-pwsh)
 - 🔄 profile.ps1 searches multiple locations (relative path first, then C:\code for backward compatibility)
+- 🔤 Nerd Fonts improve terminal appearance but are optional
 
 **Post-install:** User must restart terminal for PATH updates (fzf, zoxide)
 
@@ -80,6 +82,47 @@ irm get.scoop.sh | iex
 **Installs:** bat, eza, ripgrep, fd, delta
 
 **Why separate?** Graceful degradation - profile works without enhanced tools
+
+### Nerd Fonts (Optional)
+
+**`modules/nerd-fonts.ps1`** - Nerd Fonts detection and installation
+
+**Functions:**
+- `Test-NerdFontInstalled` - Detects Nerd Fonts in Windows registry
+- `Get-RecommendedNerdFonts` - Lists recommended fonts with descriptions
+- `Install-NerdFonts` - Interactive installer for Nerd Fonts
+
+**Recommended fonts:**
+1. **CaskaydiaCove Nerd Font** (default) - Microsoft's Cascadia Code + icons
+2. **FiraCode Nerd Font** - Excellent ligatures
+3. **JetBrainsMono Nerd Font** - Optimized for IDEs
+4. **Meslo Nerd Font** - Universal, very readable
+
+**Installation:**
+```powershell
+# Interactive menu
+Install-NerdFonts
+
+# Silent mode (installs CaskaydiaCove)
+Install-NerdFonts -Silent
+
+# Specific font
+Install-NerdFonts -FontName "FiraCode-NF"
+```
+
+**Via installer:**
+```powershell
+pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallNerdFonts
+```
+
+**After installation:**
+1. Restart terminal
+2. Configure terminal to use the Nerd Font (Settings → Font Face)
+3. Enable in `config.ps1`: `$global:OhMyPwsh_UseNerdFonts = $true`
+
+**Detection:** Profile automatically checks for Nerd Fonts on load and shows hint if missing
+
+**Why optional?** Works best in Windows Terminal / VS Code, may render poorly in older terminals
 
 ---
 
