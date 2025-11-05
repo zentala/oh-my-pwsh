@@ -6,10 +6,15 @@
 
 param(
     [switch]$SkipDependencies,
-    [switch]$SkipProfile
+    [switch]$SkipProfile,
+    [switch]$InstallEnhancedTools
 )
 
 Write-Host "`n🚀 oh-my-pwsh - Complete Installation`n" -ForegroundColor Cyan
+
+# UAC Warning
+Write-Host "⚠️  NOTE: This installer may require administrator privileges (UAC prompt)" -ForegroundColor Yellow
+Write-Host "   winget installs tools system-wide and may need elevation`n" -ForegroundColor Gray
 
 $ErrorActionPreference = "Stop"
 $ProfileRoot = Split-Path -Parent $PSScriptRoot
@@ -19,20 +24,22 @@ $ProfileRoot = Split-Path -Parent $PSScriptRoot
 # ============================================
 Write-Host "📦 Step 1: Checking oh-my-stats...`n" -ForegroundColor Yellow
 
-$OhMyStatsPath = "C:\code\oh-my-stats"
+# Clone oh-my-stats next to oh-my-pwsh (same parent directory)
+$ParentDir = Split-Path -Parent $ProfileRoot
+$OhMyStatsPath = Join-Path $ParentDir "oh-my-stats"
+
 if (-not (Test-Path $OhMyStatsPath)) {
-    Write-Host "  Cloning oh-my-stats..." -ForegroundColor Cyan
+    Write-Host "  Cloning oh-my-stats to: $OhMyStatsPath" -ForegroundColor Cyan
     try {
-        New-Item -Path "C:\code" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         git clone https://github.com/zentala/oh-my-stats.git $OhMyStatsPath
         Write-Host "  ✓ oh-my-stats cloned successfully" -ForegroundColor Green
     } catch {
         Write-Host "  ⚠ Failed to clone oh-my-stats: $_" -ForegroundColor Yellow
         Write-Host "  You can clone it manually later:" -ForegroundColor Gray
-        Write-Host "    git clone https://github.com/zentala/oh-my-stats.git C:\code\oh-my-stats" -ForegroundColor Gray
+        Write-Host "    git clone https://github.com/zentala/oh-my-stats.git $OhMyStatsPath" -ForegroundColor Gray
     }
 } else {
-    Write-Host "  ✓ oh-my-stats already cloned" -ForegroundColor Green
+    Write-Host "  ✓ oh-my-stats already exists at: $OhMyStatsPath" -ForegroundColor Green
 }
 
 # ============================================
@@ -122,6 +129,44 @@ if (-not (Test-Path $ConfigPath)) {
 }
 
 # ============================================
+# 5. Install Enhanced Tools (if requested)
+# ============================================
+if ($InstallEnhancedTools) {
+    Write-Host "`n🎨 Step 5: Installing Enhanced Tools...`n" -ForegroundColor Yellow
+
+    # Check if scoop is installed
+    if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
+        Write-Host "  Installing scoop package manager..." -ForegroundColor Cyan
+        try {
+            Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+            Invoke-RestMethod get.scoop.sh | Invoke-Expression
+            Write-Host "  ✓ Scoop installed" -ForegroundColor Green
+        } catch {
+            Write-Host "  ✗ Failed to install scoop: $_" -ForegroundColor Red
+            Write-Host "  You can install enhanced tools manually later" -ForegroundColor Gray
+        }
+    }
+
+    # Install enhanced tools via scoop
+    if (Get-Command scoop -ErrorAction SilentlyContinue) {
+        $tools = @('bat', 'eza', 'ripgrep', 'fd', 'delta')
+        foreach ($tool in $tools) {
+            if (Get-Command $tool -ErrorAction SilentlyContinue) {
+                Write-Host "  ✓ $tool already installed" -ForegroundColor Green
+            } else {
+                Write-Host "  Installing $tool..." -ForegroundColor Cyan
+                try {
+                    scoop install $tool
+                    Write-Host "  ✓ $tool installed" -ForegroundColor Green
+                } catch {
+                    Write-Host "  ✗ Failed to install $tool" -ForegroundColor Red
+                }
+            }
+        }
+    }
+}
+
+# ============================================
 # Summary
 # ============================================
 Write-Host "`n" + "="*60 -ForegroundColor Cyan
@@ -131,16 +176,22 @@ Write-Host "="*60 -ForegroundColor Cyan
 Write-Host "`n📌 Next Steps:" -ForegroundColor Yellow
 Write-Host "  1. ⚠️  RESTART your terminal (required for PATH updates)" -ForegroundColor Yellow
 Write-Host "     • fzf and zoxide will only work after restart" -ForegroundColor Gray
+if ($InstallEnhancedTools) {
+    Write-Host "     • Enhanced tools (bat, eza, etc.) will be available" -ForegroundColor Gray
+}
 Write-Host ""
-Write-Host "  2. 🎨 (Optional) Install enhanced tools:" -ForegroundColor Cyan
-Write-Host "     • Install scoop: Set-ExecutionPolicy RemoteSigned -Scope CurrentUser" -ForegroundColor Gray
-Write-Host "                      irm get.scoop.sh | iex" -ForegroundColor Gray
-Write-Host "     • Then run: Install-EnhancedTools" -ForegroundColor Gray
-Write-Host "     • Or manually: scoop install bat eza ripgrep fd delta" -ForegroundColor Gray
+
+if (-not $InstallEnhancedTools) {
+    Write-Host "  2. 🎨 (Optional) Install enhanced tools:" -ForegroundColor Cyan
+    Write-Host "     • Run: pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallEnhancedTools" -ForegroundColor Gray
+    Write-Host "     • Or in profile: Install-EnhancedTools" -ForegroundColor Gray
+    Write-Host "     • Or manually: scoop install bat eza ripgrep fd delta" -ForegroundColor Gray
+    Write-Host ""
+}
+
+Write-Host "  $(if ($InstallEnhancedTools) { '2' } else { '3' }). 📚 Type 'help' to see available commands" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  3. 📚 Type 'help' to see available commands" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "  4. ⚙️  Customize your config: code $ConfigPath" -ForegroundColor Cyan
+Write-Host "  $(if ($InstallEnhancedTools) { '3' } else { '4' }). ⚙️  Customize your config: code $ConfigPath" -ForegroundColor Cyan
 Write-Host ""
 
 Write-Host "="*60 -ForegroundColor Cyan

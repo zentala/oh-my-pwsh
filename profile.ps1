@@ -52,9 +52,23 @@ if (Test-Path $ConfigPath) {
 # ============================================
 # Show stats at the TOP, so any errors/warnings during
 # profile loading appear BELOW and stay visible
-Import-Module C:\code\oh-my-stats\pwsh\oh-my-stats.psd1 -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-if (Get-Module oh-my-stats) {
-    Show-SystemStats
+
+# Try to find oh-my-stats in multiple locations
+$OhMyStatsLocations = @(
+    (Join-Path (Split-Path -Parent $ProfileRoot) "oh-my-stats\pwsh\oh-my-stats.psd1"),  # Next to oh-my-pwsh
+    "C:\code\oh-my-stats\pwsh\oh-my-stats.psd1"  # Legacy hardcoded location (backward compatibility)
+)
+
+$OhMyStatsFound = $false
+foreach ($location in $OhMyStatsLocations) {
+    if (Test-Path $location) {
+        Import-Module $location -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        if (Get-Module oh-my-stats) {
+            Show-SystemStats
+            $OhMyStatsFound = $true
+            break
+        }
+    }
 }
 
 # ============================================

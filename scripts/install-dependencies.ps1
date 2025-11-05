@@ -200,5 +200,6 @@ if ($failed.Count -eq 0) {
 
 # Optional: Oh My Stats
 Write-Host "📌 Optional: Oh My Stats" -ForegroundColor Cyan
-Write-Host "   Clone: git clone https://github.com/zentala/oh-my-stats.git C:\code\oh-my-stats" -ForegroundColor Gray
-Write-Host "   Already configured in profile.ps1`n" -ForegroundColor Gray
+Write-Host "   Run Install-OhMyPwsh.ps1 to auto-clone oh-my-stats" -ForegroundColor Gray
+Write-Host "   Or manually: git clone https://github.com/zentala/oh-my-stats.git ../oh-my-stats" -ForegroundColor Gray
+Write-Host "   (Clone next to oh-my-pwsh, not in C:\code specifically)`n" -ForegroundColor Gray

@@ -27,14 +27,22 @@ pwsh -ExecutionPolicy Bypass -File scripts\Install-OhMyPwsh.ps1
 ```
 
 **What it does:**
-1. Clones [oh-my-stats](https://github.com/zentala/oh-my-stats) to `C:\code\oh-my-stats`
+1. Clones [oh-my-stats](https://github.com/zentala/oh-my-stats) **next to oh-my-pwsh** (same parent dir)
 2. Runs `install-dependencies.ps1` (see below)
 3. Configures PowerShell profile (backs up existing)
 4. Creates `config.ps1` from `config.example.ps1`
+5. Optionally installs enhanced tools (with `-InstallEnhancedTools`)
 
 **Parameters:**
+- `-InstallEnhancedTools` - Also install bat, eza, ripgrep, fd, delta (via scoop)
 - `-SkipDependencies` - Skip dependency installation
 - `-SkipProfile` - Skip profile configuration
+
+**Important:**
+- ⚠️ Shows UAC warning (winget may require elevation)
+- ⚠️ Works anywhere - not hardcoded to C:\code
+- 📁 oh-my-stats cloned to: `../oh-my-stats` (relative to oh-my-pwsh)
+- 🔄 profile.ps1 searches multiple locations (relative path first, then C:\code for backward compatibility)
 
 **Post-install:** User must restart terminal for PATH updates (fzf, zoxide)
 

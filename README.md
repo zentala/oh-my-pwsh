@@ -93,8 +93,8 @@ oh-my-pwsh/
 **Complete automated setup - installs everything you need:**
 
 ```powershell
-# 1. Clone the repo
-cd C:\code
+# 1. Clone the repo (anywhere you want - not just C:\code!)
+cd C:\code  # or any directory you prefer
 git clone git@github.com:zentala/pwsh-profile.git
 cd pwsh-profile
 
@@ -105,19 +105,28 @@ pwsh -ExecutionPolicy Bypass -File scripts\Install-OhMyPwsh.ps1
 ```
 
 **What it does:**
-- ✅ Clones [oh-my-stats](https://github.com/zentala/oh-my-stats) automatically
+- ✅ Clones [oh-my-stats](https://github.com/zentala/oh-my-stats) next to oh-my-pwsh
 - ✅ Installs all dependencies (Oh My Posh, fzf, zoxide, gsudo, PowerShell modules)
 - ✅ Configures your PowerShell profile (backs up existing one)
 - ✅ Creates config.ps1 from template
-- ℹ️ Enhanced tools (bat, eza, ripgrep, fd, delta) are optional - see below
+- ⚠️ May prompt for UAC (administrator elevation) for winget installs
 
-**After restart, optionally install enhanced tools:**
+**Optional parameters:**
 ```powershell
-# Install scoop (if not already installed)
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-irm get.scoop.sh | iex
+# Install enhanced tools automatically
+pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallEnhancedTools
 
-# Install enhanced tools
+# Skip certain steps
+pwsh -File scripts\Install-OhMyPwsh.ps1 -SkipDependencies  # Skip dependency install
+pwsh -File scripts\Install-OhMyPwsh.ps1 -SkipProfile      # Skip profile configuration
+```
+
+**After restart, enhanced tools (if not installed above):**
+```powershell
+# Option 1: Re-run installer with parameter
+pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallEnhancedTools
+
+# Option 2: Use built-in function
 Install-EnhancedTools
 ```
 
