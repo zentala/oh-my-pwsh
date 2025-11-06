@@ -17,7 +17,11 @@ Ten profil zapewnia kompatybilność z komendami Linuxowymi. Oto co masz zainsta
 - `cat`, `head`, `tail` - Czytanie plików
 - `touch` - Tworzenie/aktualizacja plików
 - `mkdir` - Tworzenie katalogów (wspiera `-p`)
-- `rm`, `mv`, `cp` - Operacje na plikach
+- `rm` - Usuwanie plików (`-Recurse`, `-Force`)
+- `rr` - **NOWE!** Szybkie usuwanie rekursywne (jak `rm -rf` w Linux)
+- `rmdir` - Usuwanie katalogów rekursywnie
+- `cp` - Kopiowanie (`-Recurse`, `-Force`)
+- `mv` - Przenoszenie/zmiana nazwy (`-Force`)
 - `which`, `whereis` - Znajdowanie komend
 - `pwd`, `cd` - Nawigacja
 - `..`, `...`, `....` - Szybka nawigacja w górę
@@ -64,6 +68,23 @@ wsl --install
 
 ## 📝 Uwagi
 
+### ⚠️ Dlaczego nie `rm -rf`?
+
+PowerShell ma konflikt parametrów (`-f` = `-Force` lub `-Filter`), więc użyj:
+
+**Opcja 1: Szybki alias `rr`** (rekomendowane)
+```powershell
+rr directory/       # Jak rm -rf w Linux
+rr file1 file2      # Usuwa wiele plików/katalogów
+```
+
+**Opcja 2: Pełne nazwy parametrów**
+```powershell
+rm -Recurse -Force directory/
+cp -Recurse source/ dest/
+mv -Force oldname newname
+```
+
 ### mkdir -p
 Działa! PowerShell automatycznie tworzy rekurencyjnie:
 ```powershell
@@ -82,6 +103,7 @@ touch existing.txt       # Aktualizuje czas modyfikacji
 - `Get-ChildItem` zamiast `ls` (ale masz alias)
 - `Select-String` zamiast `grep` (ale masz alias)
 - Pipe przekazuje obiekty, nie tekst (potężniejsze!)
+- Parametry pełne zamiast krótkich flag (`-Recurse` zamiast `-r`)
 
 ## 🎯 Rekomendacja
 

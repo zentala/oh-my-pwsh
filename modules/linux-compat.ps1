@@ -21,12 +21,7 @@ Set-Alias less more
 Set-Alias head 'Get-Content -TotalCount'
 Set-Alias tail 'Get-Content -Tail'
 
-# cp, mv, rm - File operations
-Remove-Alias cp -ErrorAction SilentlyContinue
-Set-Alias cp Copy-Item
-Set-Alias mv Move-Item
-Set-Alias rm Remove-Item
-Set-Alias rmdir Remove-Item
+# cp, mv, rm - File operations (defined as functions below for flag support)
 
 # pwd, ps - System info
 Set-Alias pwd Get-Location
@@ -153,6 +148,214 @@ function mkcd {
 
     if ($global:OhMyPwsh_ShowFeedback) {
         Write-Host "✓ Created and entered: $dir" -ForegroundColor Green
+    }
+}
+
+# ============================================
+# FILE OPERATIONS WITH LINUX FLAGS
+# ============================================
+
+# rm - Remove files/directories (supports -Recurse, -Force)
+# Note: Use full parameter names due to PowerShell conflicts
+# For quick recursive+force removal, use 'rr' alias
+function rm {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)]
+        [switch]$Recurse,
+
+        [Parameter(Mandatory=$false)]
+        [switch]$Force,
+
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$Paths
+    )
+
+    # If no paths specified, show usage
+    if (-not $Paths -or $Paths.Count -eq 0) {
+        Write-Host "Usage: rm [-Recurse] [-Force] <path>..." -ForegroundColor Yellow
+        Write-Host "  Quick alias: rr <path>  (recursive + force)" -ForegroundColor DarkGray
+        if ($global:OhMyPwsh_ShowAliasTargets) {
+            Write-Host "  → Remove-Item [-Recurse] [-Force] <path>" -ForegroundColor DarkGray
+        }
+        return
+    }
+
+    # Execute removal
+    foreach ($path in $Paths) {
+        try {
+            Remove-Item -Path $path -Recurse:$Recurse -Force:$Force -ErrorAction Stop
+
+            if ($global:OhMyPwsh_ShowFeedback) {
+                $action = if ($Recurse) { "Removed recursively" } else { "Removed" }
+                Write-Host "✓ $action`: $path" -ForegroundColor Green
+
+                if ($global:OhMyPwsh_ShowAliasTargets) {
+                    $cmd = "Remove-Item"
+                    if ($Recurse) { $cmd += " -Recurse" }
+                    if ($Force) { $cmd += " -Force" }
+                    Write-Host "  → $cmd" -ForegroundColor DarkGray
+                }
+            }
+        }
+        catch {
+            Write-Host "✗ Failed to remove: $path" -ForegroundColor Red
+            Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
+        }
+    }
+}
+
+# rr - Quick alias for recursive+force removal (like rm -rf in Linux)
+function rr {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$Paths
+    )
+
+    if (-not $Paths -or $Paths.Count -eq 0) {
+        Write-Host "Usage: rr <path>...  (recursive + force removal)" -ForegroundColor Yellow
+        Write-Host "  Equivalent to: rm -Recurse -Force <path>" -ForegroundColor DarkGray
+        return
+    }
+
+    foreach ($path in $Paths) {
+        try {
+            Remove-Item -Path $path -Recurse -Force -ErrorAction Stop
+
+            if ($global:OhMyPwsh_ShowFeedback) {
+                Write-Host "✓ Removed recursively (forced): $path" -ForegroundColor Green
+
+                if ($global:OhMyPwsh_ShowAliasTargets) {
+                    Write-Host "  → Remove-Item -Recurse -Force" -ForegroundColor DarkGray
+                }
+            }
+        }
+        catch {
+            Write-Host "✗ Failed to remove: $path" -ForegroundColor Red
+            Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
+        }
+    }
+}
+
+# rmdir - Remove directory recursively (like rr)
+# Remove default PowerShell alias first
+Remove-Item Alias:rmdir -ErrorAction SilentlyContinue
+
+function rmdir {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$Paths
+    )
+
+    # In Linux, rmdir removes only empty dirs, but PowerShell's Remove-Item is recursive
+    # We follow PowerShell behavior for consistency
+    if (-not $Paths -or $Paths.Count -eq 0) {
+        Write-Host "Usage: rmdir <path>...  (recursive + force removal)" -ForegroundColor Yellow
+        Write-Host "  Equivalent to: rr <path>" -ForegroundColor DarkGray
+        return
+    }
+
+    foreach ($path in $Paths) {
+        try {
+            Remove-Item -Path $path -Recurse -Force -ErrorAction Stop
+
+            if ($global:OhMyPwsh_ShowFeedback) {
+                Write-Host "✓ Removed directory recursively: $path" -ForegroundColor Green
+
+                if ($global:OhMyPwsh_ShowAliasTargets) {
+                    Write-Host "  → Remove-Item -Recurse -Force" -ForegroundColor DarkGray
+                }
+            }
+        }
+        catch {
+            Write-Host "✗ Failed to remove: $path" -ForegroundColor Red
+            Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
+        }
+    }
+}
+
+# cp - Copy files/directories (supports -Recurse, -Force)
+function cp {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)]
+        [switch]$Recurse,
+
+        [Parameter(Mandatory=$false)]
+        [switch]$Force,
+
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$Paths
+    )
+
+    # Need at least source and destination
+    if (-not $Paths -or $Paths.Count -lt 2) {
+        Write-Host "Usage: cp [-Recurse] [-Force] <source> <destination>" -ForegroundColor Yellow
+        if ($global:OhMyPwsh_ShowAliasTargets) {
+            Write-Host "  → Copy-Item [-Recurse] [-Force] <source> <destination>" -ForegroundColor DarkGray
+        }
+        return
+    }
+
+    try {
+        Copy-Item -Path $Paths[0] -Destination $Paths[1] -Recurse:$Recurse -Force:$Force -ErrorAction Stop
+
+        if ($global:OhMyPwsh_ShowFeedback) {
+            $action = if ($Recurse) { "Copied recursively" } else { "Copied" }
+            Write-Host "✓ $action`: $($Paths[0]) → $($Paths[1])" -ForegroundColor Green
+
+            if ($global:OhMyPwsh_ShowAliasTargets) {
+                $cmd = "Copy-Item"
+                if ($Recurse) { $cmd += " -Recurse" }
+                if ($Force) { $cmd += " -Force" }
+                Write-Host "  → $cmd" -ForegroundColor DarkGray
+            }
+        }
+    }
+    catch {
+        Write-Host "✗ Failed to copy: $($Paths[0])" -ForegroundColor Red
+        Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
+    }
+}
+
+# mv - Move/rename files (supports -Force)
+function mv {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)]
+        [switch]$Force,
+
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$Paths
+    )
+
+    # Need at least source and destination
+    if (-not $Paths -or $Paths.Count -lt 2) {
+        Write-Host "Usage: mv [-Force] <source> <destination>" -ForegroundColor Yellow
+        if ($global:OhMyPwsh_ShowAliasTargets) {
+            Write-Host "  → Move-Item [-Force] <source> <destination>" -ForegroundColor DarkGray
+        }
+        return
+    }
+
+    try {
+        Move-Item -Path $Paths[0] -Destination $Paths[1] -Force:$Force -ErrorAction Stop
+
+        if ($global:OhMyPwsh_ShowFeedback) {
+            Write-Host "✓ Moved: $($Paths[0]) → $($Paths[1])" -ForegroundColor Green
+
+            if ($global:OhMyPwsh_ShowAliasTargets) {
+                $cmd = "Move-Item"
+                if ($Force) { $cmd += " -Force" }
+                Write-Host "  → $cmd" -ForegroundColor DarkGray
+            }
+        }
+    }
+    catch {
+        Write-Host "✗ Failed to move: $($Paths[0])" -ForegroundColor Red
+        Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
     }
 }
 

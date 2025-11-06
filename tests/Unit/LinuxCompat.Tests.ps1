@@ -30,17 +30,21 @@ Describe "Linux Compatibility Aliases" {
         }
     }
 
-    Context "File operation aliases" {
-        It "cp alias points to Copy-Item" {
-            (Get-Alias cp).ResolvedCommandName | Should -Be "Copy-Item"
+    Context "File operation functions" {
+        It "cp is a function (not alias)" {
+            Get-Command cp -CommandType Function | Should -Not -BeNullOrEmpty
         }
 
-        It "mv alias points to Move-Item" {
-            (Get-Alias mv).ResolvedCommandName | Should -Be "Move-Item"
+        It "mv is a function (not alias)" {
+            Get-Command mv -CommandType Function | Should -Not -BeNullOrEmpty
         }
 
-        It "rm alias points to Remove-Item" {
-            (Get-Alias rm).ResolvedCommandName | Should -Be "Remove-Item"
+        It "rm is a function (not alias)" {
+            Get-Command rm -CommandType Function | Should -Not -BeNullOrEmpty
+        }
+
+        It "rmdir is a function (not alias)" {
+            Get-Command rmdir -CommandType Function | Should -Not -BeNullOrEmpty
         }
 
         It "pwd alias points to Get-Location" {
@@ -280,6 +284,211 @@ Describe "Linux-style Functions" {
             # mkcd calls Set-Location directly, not mockable easily
             # Just verify it doesn't throw
             { mkcd "newdir" } | Should -Not -Throw
+        }
+    }
+}
+
+Describe "File Operations with PowerShell-style Parameters" {
+    BeforeEach {
+        Mock Remove-Item {}
+        Mock Copy-Item {}
+        Mock Move-Item {}
+        Mock Write-Host {}
+    }
+
+    Context "rm function" {
+        It "rm function exists" {
+            Get-Command rm -CommandType Function | Should -Not -BeNullOrEmpty
+        }
+
+        It "Removes file without flags" {
+            rm "testfile"
+
+            Should -Invoke Remove-Item -ParameterFilter {
+                $Path -eq "testfile" -and -not $Recurse -and -not $Force
+            }
+        }
+
+        It "Handles -Recurse flag" {
+            rm -Recurse "testdir"
+
+            Should -Invoke Remove-Item -ParameterFilter {
+                $Recurse -eq $true
+            }
+        }
+
+        It "Handles -Force flag" {
+            rm -Force "testfile"
+
+            Should -Invoke Remove-Item -ParameterFilter {
+                $Force -eq $true
+            }
+        }
+
+        It "Handles -Recurse -Force combined" {
+            rm -Recurse -Force "testdir"
+
+            Should -Invoke Remove-Item -ParameterFilter {
+                $Recurse -eq $true -and $Force -eq $true
+            }
+        }
+
+        It "Removes multiple paths" {
+            & (Get-Command rm -CommandType Function) "file1" "file2" "file3"
+
+            Should -Invoke Remove-Item -Times 3
+        }
+
+        It "Shows usage when no paths specified" {
+            & (Get-Command rm -CommandType Function)
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -like "Usage:*"
+            }
+        }
+
+        It "Shows hint about rr alias in usage" {
+            & (Get-Command rm -CommandType Function)
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -like "*rr*"
+            }
+        }
+    }
+
+    Context "rr function (quick recursive+force removal)" {
+        It "rr function exists" {
+            Get-Command rr -CommandType Function | Should -Not -BeNullOrEmpty
+        }
+
+        It "Removes with -Recurse -Force by default" {
+            rr "testdir"
+
+            Should -Invoke Remove-Item -ParameterFilter {
+                $Recurse -eq $true -and $Force -eq $true
+            }
+        }
+
+        It "Removes multiple paths recursively" {
+            rr "dir1" "dir2" "dir3"
+
+            Should -Invoke Remove-Item -Times 3 -ParameterFilter {
+                $Recurse -eq $true -and $Force -eq $true
+            }
+        }
+
+        It "Shows usage when no paths specified" {
+            rr
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -like "Usage:*"
+            }
+        }
+    }
+
+    Context "rmdir function" {
+        It "rmdir function exists" {
+            Get-Command rmdir -CommandType Function | Should -Not -BeNullOrEmpty
+        }
+
+        It "Removes with -Recurse -Force by default" {
+            rmdir "testdir"
+
+            Should -Invoke Remove-Item -ParameterFilter {
+                $Recurse -eq $true -and $Force -eq $true
+            }
+        }
+
+        It "Removes multiple directories" {
+            rmdir "dir1" "dir2"
+
+            Should -Invoke Remove-Item -Times 2 -ParameterFilter {
+                $Recurse -eq $true -and $Force -eq $true
+            }
+        }
+
+        It "Shows usage when no paths specified" {
+            rmdir
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -like "Usage:*"
+            }
+        }
+    }
+
+    Context "cp function" {
+        It "cp function exists" {
+            Get-Command cp -CommandType Function | Should -Not -BeNullOrEmpty
+        }
+
+        It "Copies file without flags" {
+            & (Get-Command cp -CommandType Function) "source.txt" "dest.txt"
+
+            Should -Invoke Copy-Item -ParameterFilter {
+                $Path -eq "source.txt" -and $Destination -eq "dest.txt" -and -not $Recurse -and -not $Force
+            }
+        }
+
+        It "Handles -Recurse flag" {
+            cp -Recurse "sourcedir" "destdir"
+
+            Should -Invoke Copy-Item -ParameterFilter {
+                $Recurse -eq $true
+            }
+        }
+
+        It "Handles -Force flag" {
+            cp -Force "source.txt" "dest.txt"
+
+            Should -Invoke Copy-Item -ParameterFilter {
+                $Force -eq $true
+            }
+        }
+
+        It "Handles -Recurse -Force combined" {
+            cp -Recurse -Force "sourcedir" "destdir"
+
+            Should -Invoke Copy-Item -ParameterFilter {
+                $Recurse -eq $true -and $Force -eq $true
+            }
+        }
+
+        It "Shows usage when insufficient arguments" {
+            & (Get-Command cp -CommandType Function) "onlyonefile"
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -like "Usage:*"
+            }
+        }
+    }
+
+    Context "mv function" {
+        It "mv function exists" {
+            Get-Command mv -CommandType Function | Should -Not -BeNullOrEmpty
+        }
+
+        It "Moves file without flags" {
+            & (Get-Command mv -CommandType Function) "source.txt" "dest.txt"
+
+            Should -Invoke Move-Item -ParameterFilter {
+                $Path -eq "source.txt" -and $Destination -eq "dest.txt" -and -not $Force
+            }
+        }
+
+        It "Handles -Force flag" {
+            mv -Force "source.txt" "dest.txt"
+
+            Should -Invoke Move-Item -ParameterFilter {
+                $Force -eq $true
+            }
+        }
+
+        It "Shows usage when insufficient arguments" {
+            & (Get-Command mv -CommandType Function) "onlyonefile"
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -like "Usage:*"
+            }
         }
     }
 }

@@ -68,6 +68,9 @@ What other options did we evaluate?
 - [ADR-006](./006-windows-terminal-auto-config.md) - Windows Terminal Automatic Font Configuration
 - [ADR-007](./007-font-variant-warnings.md) - Nerd Font Variant Warnings (Regular vs Mono)
 
+### Linux Compatibility
+- [ADR-008](./008-linux-flags-and-rr-alias.md) - Linux Flag Handling and `rr` Alias
+
 ## How to Create a New ADR
 
 1. Determine the next number (NNN)
