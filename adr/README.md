@@ -63,12 +63,10 @@ What other options did we evaluate?
 - [ADR-003](./003-coverage-targets.md) - Code Coverage Targets
 - [ADR-004](./004-git-hooks-optional.md) - Git Hooks Optional
 
-### Logging System
-- [ADR-005](./005-write-status-message-architecture.md) - Write-StatusMessage Architecture
-- [ADR-006](./006-message-segment-composition.md) - Message Segment Composition
-
-### Icon System
-- [ADR-007](./007-unicode-icons-default.md) - Unicode Icons as Default
+### Installation & Setup
+- [ADR-005](./005-default-full-installation.md) - Default Full Installation with Opt-Out Flags
+- [ADR-006](./006-windows-terminal-auto-config.md) - Windows Terminal Automatic Font Configuration
+- [ADR-007](./007-font-variant-warnings.md) - Nerd Font Variant Warnings (Regular vs Mono)
 
 ## How to Create a New ADR
 

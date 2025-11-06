@@ -7,9 +7,24 @@
 param(
     [switch]$SkipDependencies,
     [switch]$SkipProfile,
+
+    # New default behavior: Install by default, skip if specified
+    [switch]$SkipScoop,
+    [switch]$SkipEnhancedTools,
+    [switch]$SkipNerdFonts,
+
+    # Legacy flags (backward compatibility) - override Skip flags
     [switch]$InstallEnhancedTools,
     [switch]$InstallNerdFonts
 )
+
+# ============================================
+# Determine what to install
+# ============================================
+# Legacy flags override Skip flags for backward compatibility
+$ShouldInstallScoop = -not $SkipScoop
+$ShouldInstallEnhancedTools = $InstallEnhancedTools -or (-not $SkipEnhancedTools)
+$ShouldInstallNerdFonts = $InstallNerdFonts -or (-not $SkipNerdFonts)
 
 Write-Host "`n🚀 oh-my-pwsh - Complete Installation`n" -ForegroundColor Cyan
 
@@ -41,6 +56,41 @@ if (-not (Test-Path $OhMyStatsPath)) {
     }
 } else {
     Write-Host "  ✓ oh-my-stats already exists at: $OhMyStatsPath" -ForegroundColor Green
+}
+
+# ============================================
+# 1.5. Install Scoop (if needed)
+# ============================================
+if ($ShouldInstallScoop) {
+    Write-Host "`n📦 Step 1.5: Checking Scoop package manager...`n" -ForegroundColor Yellow
+
+    if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
+        Write-Host "  Installing Scoop package manager..." -ForegroundColor Cyan
+        Write-Host "  (Required for enhanced tools and Nerd Fonts)" -ForegroundColor Gray
+        Write-Host ""
+
+        try {
+            # Set execution policy for current user
+            Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction Stop
+
+            # Install scoop
+            Invoke-RestMethod get.scoop.sh -ErrorAction Stop | Invoke-Expression
+
+            Write-Host ""
+            Write-Host "  ✓ Scoop installed successfully" -ForegroundColor Green
+        } catch {
+            Write-Host ""
+            Write-Host "  ✗ Failed to install Scoop: $_" -ForegroundColor Red
+            Write-Host "  You can install it manually later:" -ForegroundColor Gray
+            Write-Host "    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser" -ForegroundColor DarkGray
+            Write-Host "    irm get.scoop.sh | iex" -ForegroundColor DarkGray
+            Write-Host ""
+        }
+    } else {
+        Write-Host "  ✓ Scoop already installed" -ForegroundColor Green
+    }
+} else {
+    Write-Host "`n⏭  Step 1.5: Skipping Scoop installation (-SkipScoop)" -ForegroundColor Gray
 }
 
 # ============================================
@@ -130,26 +180,17 @@ if (-not (Test-Path $ConfigPath)) {
 }
 
 # ============================================
-# 5. Install Enhanced Tools (if requested)
+# 5. Install Enhanced Tools
 # ============================================
-if ($InstallEnhancedTools) {
+if ($ShouldInstallEnhancedTools) {
     Write-Host "`n🎨 Step 5: Installing Enhanced Tools...`n" -ForegroundColor Yellow
 
-    # Check if scoop is installed
+    # Check if scoop is installed (should be from Step 1.5, but double-check)
     if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
-        Write-Host "  Installing scoop package manager..." -ForegroundColor Cyan
-        try {
-            Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-            Invoke-RestMethod get.scoop.sh | Invoke-Expression
-            Write-Host "  ✓ Scoop installed" -ForegroundColor Green
-        } catch {
-            Write-Host "  ✗ Failed to install scoop: $_" -ForegroundColor Red
-            Write-Host "  You can install enhanced tools manually later" -ForegroundColor Gray
-        }
-    }
-
-    # Install enhanced tools via scoop
-    if (Get-Command scoop -ErrorAction SilentlyContinue) {
+        Write-Host "  ⚠ Scoop not found - cannot install enhanced tools" -ForegroundColor Yellow
+        Write-Host "  Run the installer again without -SkipScoop" -ForegroundColor Gray
+    } else {
+        # Install enhanced tools via scoop
         $tools = @('bat', 'eza', 'ripgrep', 'fd', 'delta')
         foreach ($tool in $tools) {
             if (Get-Command $tool -ErrorAction SilentlyContinue) {
@@ -165,33 +206,43 @@ if ($InstallEnhancedTools) {
             }
         }
     }
+} else {
+    Write-Host "`n⏭  Step 5: Skipping Enhanced Tools (-SkipEnhancedTools)" -ForegroundColor Gray
 }
 
 # ============================================
-# 6. Install Nerd Fonts (if requested)
+# 6. Install Nerd Fonts
 # ============================================
-if ($InstallNerdFonts) {
+if ($ShouldInstallNerdFonts) {
     Write-Host "`n🔤 Step 6: Installing Nerd Fonts...`n" -ForegroundColor Yellow
 
-    # Load the nerd-fonts module
-    $NerdFontsModule = Join-Path $ProfileRoot "modules\nerd-fonts.ps1"
-    if (Test-Path $NerdFontsModule) {
-        . $NerdFontsModule
+    # Check if scoop is installed (should be from Step 1.5, but double-check)
+    if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
+        Write-Host "  ⚠ Scoop not found - cannot install Nerd Fonts" -ForegroundColor Yellow
+        Write-Host "  Run the installer again without -SkipScoop" -ForegroundColor Gray
+    } else {
+        # Load the nerd-fonts module
+        $NerdFontsModule = Join-Path $ProfileRoot "modules\nerd-fonts.ps1"
+        if (Test-Path $NerdFontsModule) {
+            . $NerdFontsModule
 
-        # Check if already installed
-        $nfCheck = Test-NerdFontInstalled
-        if ($nfCheck.Installed) {
-            Write-Host "  ✓ Nerd Fonts already installed:" -ForegroundColor Green
-            foreach ($font in $nfCheck.Fonts) {
-                Write-Host "    • $font" -ForegroundColor Gray
+            # Check if already installed
+            $nfCheck = Test-NerdFontInstalled
+            if ($nfCheck.Installed) {
+                Write-Host "  ✓ Nerd Fonts already installed:" -ForegroundColor Green
+                foreach ($font in $nfCheck.Fonts) {
+                    Write-Host "    • $font" -ForegroundColor Gray
+                }
+            } else {
+                # Install recommended font (CascadiaCode-NF) in silent mode
+                Install-NerdFonts -Silent
             }
         } else {
-            # Install recommended font (CascadiaCode-NF) in silent mode
-            Install-NerdFonts -Silent
+            Write-Host "  ⚠ Nerd Fonts module not found" -ForegroundColor Yellow
         }
-    } else {
-        Write-Host "  ⚠ Nerd Fonts module not found" -ForegroundColor Yellow
     }
+} else {
+    Write-Host "`n⏭  Step 6: Skipping Nerd Fonts (-SkipNerdFonts)" -ForegroundColor Gray
 }
 
 # ============================================
@@ -204,27 +255,29 @@ Write-Host "="*60 -ForegroundColor Cyan
 Write-Host "`n📌 Next Steps:" -ForegroundColor Yellow
 Write-Host "  1. ⚠️  RESTART your terminal (required for PATH updates)" -ForegroundColor Yellow
 Write-Host "     • fzf and zoxide will only work after restart" -ForegroundColor Gray
-if ($InstallEnhancedTools) {
+if ($ShouldInstallEnhancedTools) {
     Write-Host "     • Enhanced tools (bat, eza, etc.) will be available" -ForegroundColor Gray
 }
-if ($InstallNerdFonts) {
+if ($ShouldInstallNerdFonts) {
     Write-Host "     • After restart, configure terminal to use the installed Nerd Font" -ForegroundColor Gray
 }
 Write-Host ""
 
 $step = 2
 
-if (-not $InstallEnhancedTools) {
-    Write-Host "  $step. 🎨 (Optional) Install enhanced tools:" -ForegroundColor Cyan
-    Write-Host "     • Run: pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallEnhancedTools" -ForegroundColor Gray
+if (-not $ShouldInstallEnhancedTools) {
+    Write-Host "  $step. 🎨 (Optional) Install enhanced tools later:" -ForegroundColor Cyan
+    Write-Host "     • Run: pwsh -File scripts\Install-OhMyPwsh.ps1" -ForegroundColor Gray
+    Write-Host "       (enhanced tools are installed by default now)" -ForegroundColor DarkGray
     Write-Host "     • Or in profile: Install-EnhancedTools" -ForegroundColor Gray
     Write-Host ""
     $step++
 }
 
-if (-not $InstallNerdFonts) {
+if (-not $ShouldInstallNerdFonts) {
     Write-Host "  $step. 🔤 (Optional) Install Nerd Fonts for better icons:" -ForegroundColor Cyan
-    Write-Host "     • Run: pwsh -File scripts\Install-OhMyPwsh.ps1 -InstallNerdFonts" -ForegroundColor Gray
+    Write-Host "     • Run: pwsh -File scripts\Install-OhMyPwsh.ps1" -ForegroundColor Gray
+    Write-Host "       (Nerd Fonts are installed by default now)" -ForegroundColor DarkGray
     Write-Host "     • Or in profile: Install-NerdFonts" -ForegroundColor Gray
     Write-Host "     • Then enable in config.ps1: `$global:OhMyPwsh_UseNerdFonts = `$true" -ForegroundColor Gray
     Write-Host ""
