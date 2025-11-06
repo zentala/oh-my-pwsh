@@ -59,7 +59,12 @@
       "Bash(pwsh.exe -NoProfile -File C:/tmp/fix-install-hooks.ps1)",
       "Bash(git add .claude/settings.local.json)",
       "Bash(git clone:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash($env:WT_SESSION)",
+      "Bash($env:WT_PROFILE_ID)",
+      "Bash($env:TERM_PROGRAM)",
+      "Bash(Test-Path \"$env:LOCALAPPDATA\\Packages\\Microsoft.WindowsTerminal_8wekyb3d8bbwe\\LocalState\\settings.json\")",
+      "Bash(ls \"C:\\code\\oh-my-pwsh\\adr\"\" 2>/dev/null | grep -E \"^[0-9]+ \")"
     ],
     "deny": [],
     "ask": []
