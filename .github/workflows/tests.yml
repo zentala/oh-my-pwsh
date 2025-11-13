@@ -32,6 +32,19 @@ jobs:
           Write-Host "Installing Pester..." -ForegroundColor Cyan
           ./scripts/Install-TestDeps.ps1
 
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Write-Host "Installing PSScriptAnalyzer..." -ForegroundColor Cyan
+          ./scripts/Install-PSScriptAnalyzer.ps1
+
+      - name: Run linter
+        shell: pwsh
+        run: |
+          Write-Host "Running PSScriptAnalyzer..." -ForegroundColor Cyan
+          ./scripts/Invoke-Linter.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Run tests with coverage
         shell: pwsh
         run: |
