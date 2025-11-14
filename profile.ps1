@@ -59,13 +59,11 @@ $OhMyStatsLocations = @(
     "C:\code\oh-my-stats\pwsh\oh-my-stats.psd1"  # Legacy hardcoded location (backward compatibility)
 )
 
-$OhMyStatsFound = $false
 foreach ($location in $OhMyStatsLocations) {
     if (Test-Path $location) {
         Import-Module $location -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         if (Get-Module oh-my-stats) {
             Show-SystemStats
-            $OhMyStatsFound = $true
             break
         }
     }

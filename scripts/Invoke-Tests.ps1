@@ -10,7 +10,7 @@
     Type of tests to run: Unit, Integration, E2E, All (default: All)
 
 .PARAMETER Coverage
-    Generate code coverage report (HTML + XML)
+    Generate code coverage report (HTML + XML). Default: `
 
 .PARAMETER Fast
     Fast mode - parallel execution, no coverage (for git hooks)
@@ -175,7 +175,6 @@ if ($Watch) {
 
     $action = {
         $path = $Event.SourceEventArgs.FullPath
-        $changeType = $Event.SourceEventArgs.ChangeType
 
         # Ignore coverage and .git files
         if ($path -like "*\tests\Coverage\*" -or $path -like "*\.git\*") {

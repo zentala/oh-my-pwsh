@@ -140,7 +140,9 @@ function Set-WindowsTerminalFont {
     # Check if running in Windows Terminal
     $termType = Get-TerminalType
     if ($termType -ne "WindowsTerminal") {
-        Write-Host "⚠️  Not running in Windows Terminal - cannot auto-configure" -ForegroundColor Yellow
+        if (-not $Silent) {
+            Write-Host "⚠️  Not running in Windows Terminal - cannot auto-configure" -ForegroundColor Yellow
+        }
         return $false
     }
 
