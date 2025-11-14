@@ -1,4 +1,4 @@
-# ============================================
+﻿# ============================================
 # Icon System with Nerd Font Fallbacks
 # ============================================
 # Universal icon system for oh-my-pwsh
@@ -24,33 +24,33 @@
 $script:IconMap = @{
     success = @{
         NerdFont = "󰄵"  # U+F0135 - direct UTF-8
-        Unicode  = "✓"
-        Color    = "Green"
+        Unicode = "✓"
+        Color = "Green"
     }
     warning = @{
         NerdFont = "󰗖"  # U+F05D6 - direct UTF-8
-        Unicode  = "!"
-        Color    = "Yellow"
+        Unicode = "!"
+        Color = "Yellow"
     }
     error = @{
         NerdFont = ""  # U+F052F - direct UTF-8
-        Unicode  = "x"
-        Color    = "Red"
+        Unicode = "x"
+        Color = "Red"
     }
     info = @{
         NerdFont = ""  # U+F0449 - direct UTF-8
-        Unicode  = "i"
-        Color    = "Cyan"
+        Unicode = "i"
+        Color = "Cyan"
     }
     tip = @{
         NerdFont = ""  # U+F0400 - direct UTF-8
-        Unicode  = "※"
-        Color    = "Blue"
+        Unicode = "※"
+        Color = "Blue"
     }
     question = @{
         NerdFont = ""  # U+F0420 - direct UTF-8
-        Unicode  = "?"
-        Color    = "Magenta"
+        Unicode = "?"
+        Color = "Magenta"
     }
 }
 

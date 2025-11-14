@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Generate a new test file from template
@@ -70,8 +70,8 @@ $moduleName = $moduleFile -replace '\.ps1$', ''
 
 # Convert module name to PascalCase for test file
 $testFileName = ($moduleName -split '-' | ForEach-Object {
-    $_.Substring(0,1).ToUpper() + $_.Substring(1)
-}) -join ''
+        $_.Substring(0, 1).ToUpper() + $_.Substring(1)
+    }) -join ''
 
 # Determine test file path
 $testDir = Join-Path $repoRoot "tests/$Type"

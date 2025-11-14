@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Run tests for oh-my-pwsh
 
@@ -86,10 +86,10 @@ $config = [PesterConfiguration]::Default
 
 # Set test path based on type
 switch ($Type) {
-    'Unit'        { $config.Run.Path = Join-Path $projectRoot "tests/Unit" }
+    'Unit' { $config.Run.Path = Join-Path $projectRoot "tests/Unit" }
     'Integration' { $config.Run.Path = Join-Path $projectRoot "tests/Integration" }
-    'E2E'         { $config.Run.Path = Join-Path $projectRoot "tests/E2E" }
-    'All'         { $config.Run.Path = Join-Path $projectRoot "tests" }
+    'E2E' { $config.Run.Path = Join-Path $projectRoot "tests/E2E" }
+    'All' { $config.Run.Path = Join-Path $projectRoot "tests" }
 }
 
 # Filter

@@ -1,4 +1,4 @@
-# ============================================
+﻿# ============================================
 # Linux Compatibility Module
 # ============================================
 # Provides Linux-style aliases and functions for PowerShell
@@ -161,13 +161,13 @@ function mkcd {
 function rm {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [switch]$Recurse,
 
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [switch]$Force,
 
-        [Parameter(ValueFromRemainingArguments=$true)]
+        [Parameter(ValueFromRemainingArguments = $true)]
         [string[]]$Paths
     )
 
@@ -197,8 +197,7 @@ function rm {
                     Write-Host "  → $cmd" -ForegroundColor DarkGray
                 }
             }
-        }
-        catch {
+        } catch {
             Write-Host "✗ Failed to remove: $path" -ForegroundColor Red
             Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
         }
@@ -209,7 +208,7 @@ function rm {
 function rr {
     [CmdletBinding()]
     param(
-        [Parameter(ValueFromRemainingArguments=$true)]
+        [Parameter(ValueFromRemainingArguments = $true)]
         [string[]]$Paths
     )
 
@@ -230,8 +229,7 @@ function rr {
                     Write-Host "  → Remove-Item -Recurse -Force" -ForegroundColor DarkGray
                 }
             }
-        }
-        catch {
+        } catch {
             Write-Host "✗ Failed to remove: $path" -ForegroundColor Red
             Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
         }
@@ -245,7 +243,7 @@ Remove-Item Alias:rmdir -ErrorAction SilentlyContinue
 function rmdir {
     [CmdletBinding()]
     param(
-        [Parameter(ValueFromRemainingArguments=$true)]
+        [Parameter(ValueFromRemainingArguments = $true)]
         [string[]]$Paths
     )
 
@@ -268,8 +266,7 @@ function rmdir {
                     Write-Host "  → Remove-Item -Recurse -Force" -ForegroundColor DarkGray
                 }
             }
-        }
-        catch {
+        } catch {
             Write-Host "✗ Failed to remove: $path" -ForegroundColor Red
             Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
         }
@@ -280,13 +277,13 @@ function rmdir {
 function cp {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [switch]$Recurse,
 
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [switch]$Force,
 
-        [Parameter(ValueFromRemainingArguments=$true)]
+        [Parameter(ValueFromRemainingArguments = $true)]
         [string[]]$Paths
     )
 
@@ -313,8 +310,7 @@ function cp {
                 Write-Host "  → $cmd" -ForegroundColor DarkGray
             }
         }
-    }
-    catch {
+    } catch {
         Write-Host "✗ Failed to copy: $($Paths[0])" -ForegroundColor Red
         Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
     }
@@ -324,10 +320,10 @@ function cp {
 function mv {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [switch]$Force,
 
-        [Parameter(ValueFromRemainingArguments=$true)]
+        [Parameter(ValueFromRemainingArguments = $true)]
         [string[]]$Paths
     )
 
@@ -352,8 +348,7 @@ function mv {
                 Write-Host "  → $cmd" -ForegroundColor DarkGray
             }
         }
-    }
-    catch {
+    } catch {
         Write-Host "✗ Failed to move: $($Paths[0])" -ForegroundColor Red
         Write-Host "  $($_.Exception.Message)" -ForegroundColor DarkRed
     }

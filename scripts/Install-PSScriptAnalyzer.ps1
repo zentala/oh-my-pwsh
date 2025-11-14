@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Install PSScriptAnalyzer for code quality checks
 
@@ -52,11 +52,11 @@ try {
     Write-Host "📦 Installing PSScriptAnalyzer..." -ForegroundColor Cyan
 
     $installParams = @{
-        Name               = 'PSScriptAnalyzer'
-        Repository         = 'PSGallery'
-        Scope              = 'CurrentUser'
-        Force              = $true
-        AllowClobber       = $true
+        Name = 'PSScriptAnalyzer'
+        Repository = 'PSGallery'
+        Scope = 'CurrentUser'
+        Force = $true
+        AllowClobber = $true
         SkipPublisherCheck = $true
     }
 
@@ -73,8 +73,7 @@ try {
         Write-Host "✗ Installation verification failed" -ForegroundColor Red
         exit 1
     }
-}
-catch {
+} catch {
     Write-Host "✗ Installation failed: $_" -ForegroundColor Red
     exit 1
 }

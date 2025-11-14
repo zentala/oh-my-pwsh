@@ -1,4 +1,4 @@
-# =====================================================
+﻿# =====================================================
 # Nerd Fonts Detection and Installation
 # =====================================================
 
@@ -131,7 +131,7 @@ function Set-WindowsTerminalFont {
     #>
 
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$FontName,
 
         [switch]$Silent

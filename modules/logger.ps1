@@ -1,4 +1,4 @@
-# ============================================
+﻿# ============================================
 # Profile Status Logger
 # ============================================
 # Central logging function for oh-my-pwsh status messages
@@ -44,17 +44,17 @@ function Write-InstallHint {
 
     # Build styled message segments for better visual clarity
     $segments = @(
-        @{Text = "install "; Color = "White"}
-        @{Text = "``$Tool``"; Color = "Yellow"}
+        @{Text = "install "; Color = "White" }
+        @{Text = "``$Tool``"; Color = "Yellow" }
     )
 
     if ($Description) {
-        $segments += @{Text = " for "; Color = "White"}
-        $segments += @{Text = $Description; Color = "White"}
+        $segments += @{Text = " for "; Color = "White" }
+        $segments += @{Text = $Description; Color = "White" }
     }
 
-    $segments += @{Text = ": "; Color = "White"}
-    $segments += @{Text = $InstallCommand; Color = "DarkGray"}
+    $segments += @{Text = ": "; Color = "White" }
+    $segments += @{Text = $InstallCommand; Color = "DarkGray" }
 
     # Use Write-StatusMessage with styled segments
     Write-StatusMessage -Role "warning" -Message $segments

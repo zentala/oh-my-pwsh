@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Run PSScriptAnalyzer on oh-my-pwsh codebase
 
@@ -113,9 +113,9 @@ foreach ($path in $analyzePaths) {
     }
 
     $params = @{
-        Path     = $path
+        Path = $path
         Settings = $settingsFile
-        Recurse  = $true
+        Recurse = $true
         Severity = $Severity
     }
 
