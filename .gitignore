@@ -10,4 +10,4 @@ scripts/private/
 .DS_Store
 Thumbs.db
 .cursorindexingignore
-.specstory/**
+.specstory/**.claude/settings.local.json
