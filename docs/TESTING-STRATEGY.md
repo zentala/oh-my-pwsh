@@ -6,12 +6,50 @@ This document describes the comprehensive testing strategy for oh-my-pwsh, inclu
 
 ## Quick Links
 
+- **Test Directory**: [tests/README.md](../tests/README.md) - Test structure and organization
 - **Implementation Task**: [005-testing-infrastructure.md](../todo/005-testing-infrastructure.md)
 - **Architecture Decisions**:
   - [ADR-001: Pester Test Framework](../adr/001-pester-test-framework.md)
   - [ADR-002: Test Isolation Strategy](../adr/002-test-isolation-strategy.md)
   - [ADR-003: Coverage Targets](../adr/003-coverage-targets.md)
   - [ADR-004: Git Hooks Optional](../adr/004-git-hooks-optional.md)
+
+---
+
+## Test Organization
+
+All tests are located in `./tests/` directory with a three-tier structure:
+
+### Directory Structure
+
+```
+tests/
+├── Unit/              # Unit tests - isolated component testing (7 files)
+├── Integration/       # Integration tests - component interaction (1 file)
+├── E2E/              # End-to-end tests - full profile scenarios (1 file)
+├── Helpers/          # Test utilities and templates
+├── Fixtures/         # Test data and mock configurations
+└── Coverage/         # Generated coverage reports (git-ignored)
+```
+
+### Test Categories
+
+**Unit Tests** (`tests/Unit/`) - Fast, isolated, mocked dependencies:
+- `Icons.Tests.ps1` - Icon fallback system
+- `StatusMessage.Tests.ps1` - Status output & message segments
+- `Logger.Tests.ps1` - Logging helpers
+- `LinuxCompat.Tests.ps1` - Linux command compatibility
+- `EnhancedTools.Tests.ps1` - Enhanced tool wrappers
+- `FallbackBehavior.Tests.ps1` - Fallback when tools missing
+- `TuiDemo.Tests.ps1` - TUI demo functionality
+
+**Integration Tests** (`tests/Integration/`) - Component interactions:
+- `LoggingFlow.Tests.ps1` - Icon → StatusMessage → Logger chain
+
+**E2E Tests** (`tests/E2E/`) - Full profile scenarios:
+- `ProfileLoad.Tests.ps1` - Smoke test - profile loads without errors
+
+**See [tests/README.md](../tests/README.md) for detailed test documentation.**
 
 ---
 

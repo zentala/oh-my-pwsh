@@ -8,12 +8,16 @@
 
 PowerShell profile with zero-error philosophy and graceful degradation for power users.
 
-**Quick Start (If Resuming After Inactivity):**
-1. Read [STATUS.md](./STATUS.md) - Current state, what works, what doesn't
+**🚨 ALWAYS START HERE:**
+1. **Read [STATUS.md](./STATUS.md)** ← **SOURCE OF TRUTH** - Current state, what works, next tasks
 2. Read [DECISIONS.md](./DECISIONS.md) - Why we made certain choices
-3. Read [.claude/runbook/2025-10-18.md](./.claude/runbook/2025-10-18.md) - Latest session log
+3. Read [.claude/runbook/2025-10-19.md](./.claude/runbook/2025-10-19.md) - Latest session log
 4. Run tests: `./scripts/Invoke-Tests.ps1 -Coverage`
 5. Check CI: `gh run list --limit 5`
+
+**When starting ANY work:**
+- Check STATUS.md for task queue and current priority
+- Update STATUS.md when completing tasks or changing priorities
 
 ---
 
@@ -265,6 +269,167 @@ $segments = @(
 )
 Write-StatusMessage -Role "warning" -Message $segments
 ```
+
+---
+
+## Testing
+
+### Test Organization
+
+**Tests are located in `./tests/` directory with three-tier structure:**
+
+```
+tests/
+├── Unit/              # Unit tests - isolated component testing
+│   ├── Icons.Tests.ps1                 # Icon fallback system (Tier 1: 90%)
+│   ├── StatusMessage.Tests.ps1         # Status output & message segments (Tier 1: 90%)
+│   ├── Logger.Tests.ps1                # Logging helpers (Tier 2: 80%)
+│   ├── LinuxCompat.Tests.ps1          # Linux command compatibility (Tier 2: 80%)
+│   ├── EnhancedTools.Tests.ps1        # Enhanced tool wrappers (Tier 3: 70%)
+│   ├── FallbackBehavior.Tests.ps1     # Fallback when tools missing (Tier 3: 70%)
+│   └── TuiDemo.Tests.ps1              # TUI demo functionality (Tier 3: 70%)
+├── Integration/       # Integration tests - component interaction
+│   └── LoggingFlow.Tests.ps1          # Icon → StatusMessage → Logger chain
+├── E2E/              # End-to-end tests - full profile scenarios
+│   └── ProfileLoad.Tests.ps1          # Smoke test - profile loads without errors
+├── Helpers/          # Test utilities and templates
+│   ├── TestHelpers.ps1                # Shared test utilities
+│   └── Templates/                      # Test templates for new tests
+└── Fixtures/         # Test data and mock configurations
+    ├── config-all-tools.ps1           # All enhanced tools available
+    ├── config-no-tools.ps1            # No tools (pure fallback)
+    └── config-partial-tools.ps1       # Some tools available
+```
+
+### Running Tests
+
+**Quick commands:**
+
+```powershell
+# Fast mode (no coverage) - before commit
+.\scripts\Invoke-Tests.ps1
+
+# With coverage - before PR
+.\scripts\Invoke-Tests.ps1 -Coverage
+
+# Specific test file
+.\scripts\Invoke-Tests.ps1 -TestPath tests/Unit/Icons.Tests.ps1
+
+# Specific test suite
+.\scripts\Invoke-Tests.ps1 -TestPath tests/Unit/
+```
+
+**Pre-commit hook (optional):**
+```powershell
+# Install git hook (runs tests before commit)
+.\scripts\Install-GitHooks.ps1
+
+# Bypass hook for emergency commits
+git commit --no-verify
+```
+
+**CI/CD:** GitHub Actions runs on every push - full test suite with coverage required.
+
+### Writing Tests
+
+**Unit test template:**
+
+```powershell
+BeforeAll {
+    # Import module under test
+    . "$PSScriptRoot/../../modules/status-output.ps1"
+
+    # Import test helpers
+    . "$PSScriptRoot/../Helpers/TestHelpers.ps1"
+}
+
+Describe "Component-Name" {
+    Context "When feature is enabled" {
+        BeforeAll {
+            # Setup mocks
+            Mock Get-Command { $true } -ParameterFilter { $Name -eq "tool" }
+        }
+
+        It "Does expected behavior" {
+            # Arrange
+            $input = "test"
+
+            # Act
+            $result = Invoke-Function -Input $input
+
+            # Assert
+            $result | Should -Be "expected"
+        }
+    }
+
+    Context "When tool is missing (CRITICAL)" {
+        BeforeAll {
+            Mock Get-Command { $null } -ParameterFilter { $Name -eq "tool" }
+        }
+
+        It "Falls back to PowerShell native" {
+            # Test fallback works
+        }
+
+        It "Shows warning message" {
+            # Test warning shown
+        }
+
+        It "Does not throw errors" {
+            # Test no exceptions
+        }
+    }
+}
+```
+
+**Use test template:**
+```powershell
+# Create new test from template
+cp tests/Helpers/Templates/Unit.Tests.ps1.template tests/Unit/NewFeature.Tests.ps1
+```
+
+### Test Fixtures
+
+**Mock configurations for different scenarios:**
+
+```powershell
+# All tools available
+. "$PSScriptRoot/../Fixtures/config-all-tools.ps1"
+
+# No enhanced tools (pure fallback)
+. "$PSScriptRoot/../Fixtures/config-no-tools.ps1"
+
+# Partial installation
+. "$PSScriptRoot/../Fixtures/config-partial-tools.ps1"
+```
+
+### Coverage Targets by Tier
+
+| Tier | Components | Target | Why |
+|------|------------|--------|-----|
+| **1** | Core systems | **90%** | Icons, StatusMessage - used everywhere |
+| **2** | Helpers | **80%** | Logger, LinuxCompat - important utilities |
+| **3** | Features | **70%** | EnhancedTools, Demos - feature logic |
+| **4** | Orchestration | **60%** | profile.ps1 - integration glue |
+
+**Overall target:** ≥75% line coverage
+
+### Troubleshooting Tests
+
+**Tests fail locally but pass in CI:**
+- Check PowerShell version: `$PSVersionTable.PSVersion` (need 7.x)
+- Clear mock state: Restart PowerShell session
+- Check file paths: Tests use relative paths from test file
+
+**Coverage lower than expected:**
+- Verify fallback paths are tested (when tool is missing)
+- Check BeforeAll/AfterAll hooks execute
+- Run with `-Coverage` to see uncovered lines
+
+**"Cannot find module" errors:**
+- Tests use dot-sourcing: `. "$PSScriptRoot/../../modules/file.ps1"`
+- Ensure paths are correct relative to test file location
+- Check module file exists at expected path
 
 ---
 

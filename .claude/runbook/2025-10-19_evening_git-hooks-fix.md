@@ -130,4 +130,43 @@ hook (no extension) → sh wrapper → calls hook.ps1
 
 ---
 
-**Status:** ✅ COMPLETE - Hook system fully working, install script fixed
+## Update: Fix Run.Parallel Property Error
+
+**Problem Found (later same day):**
+```
+🧪 Running pre-commit tests...
+⚠️  Error running tests: The property 'Parallel' cannot be found on this object
+   Allowing commit to proceed
+```
+
+**Root Cause:**
+- Line 108 in `Invoke-Tests.ps1` set `$config.Run.Parallel = $true`
+- This property **does not exist in Pester 5.x** (even in 5.7.1)
+- Parallel execution in Pester 5.x works differently (via `-Parallel` parameter)
+- Provides minimal benefit for small test suites (6 files)
+- Can cause mocking issues
+
+**Fix Applied:**
+- Removed line: `$config.Run.Parallel = $true`
+- Updated message: "Fast mode enabled (no coverage)" (removed "parallel")
+- Tests now run sequentially in 11-20s (acceptable for pre-commit)
+
+**Files Modified:**
+- [scripts/Invoke-Tests.ps1](../../scripts/Invoke-Tests.ps1:108) - Removed non-existent property
+
+**Testing:**
+```bash
+$ pwsh -File scripts/Invoke-Tests.ps1 -Type Unit -Fast
+⚡ Fast mode enabled (no coverage)
+✅ All tests passed!
+   Total: 164 | Passed: 164 | Skipped: 0
+   Time: 11.6s
+```
+
+**Commits:**
+- `3576f4d` - fix(tests): Remove non-existent Run.Parallel property
+- `f21dffb` - chore: Remove test file
+
+---
+
+**Status:** ✅ COMPLETE - Hook system fully working, all errors fixed
