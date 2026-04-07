@@ -53,7 +53,7 @@ Set-Alias history Get-History
 # EDITORS
 # ============================================
 
-Set-Alias vim 'C:\Program Files\Vim\vim90\vim.exe' -ErrorAction SilentlyContinue
+Set-Alias vim 'C:\Program Files\Vim\vim92\vim.exe' -ErrorAction SilentlyContinue
 Set-Alias vi vim -ErrorAction SilentlyContinue
 Set-Alias nano 'notepad' -ErrorAction SilentlyContinue
 
