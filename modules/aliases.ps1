@@ -38,8 +38,6 @@ Set-Alias wget Invoke-WebRequest
 Set-Alias curl Invoke-WebRequest
 
 # Edytory
-Set-Alias vim 'C:\Program Files\Vim\vim92\vim.exe' -ErrorAction SilentlyContinue
-Set-Alias vi vim -ErrorAction SilentlyContinue
 Set-Alias nano 'notepad' -ErrorAction SilentlyContinue
 
 # Skróty do programów
