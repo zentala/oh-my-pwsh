@@ -17,9 +17,6 @@
     .\demos\tui-advanced-demo.ps1
 #>
 
-# Suppress encoding warning
-$env:IgnoreSpectreEncoding = $true
-
 # Check if PwshSpectreConsole is installed
 if (-not (Get-Module -ListAvailable -Name PwshSpectreConsole)) {
     Write-Host "⚠️  PwshSpectreConsole not found. Installing..." -ForegroundColor Yellow

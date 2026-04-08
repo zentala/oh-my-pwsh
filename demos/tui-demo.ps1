@@ -20,9 +20,6 @@ param(
     [switch]$Quick  # Skip interactive prompts
 )
 
-# Suppress encoding warning
-$env:IgnoreSpectreEncoding = $true
-
 # Check if PwshSpectreConsole is installed
 if (-not (Get-Module -ListAvailable -Name PwshSpectreConsole)) {
     Write-Host "⚠️  PwshSpectreConsole not found. Installing..." -ForegroundColor Yellow

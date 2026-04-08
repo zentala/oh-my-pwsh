@@ -9,6 +9,14 @@
 $global:PSProfileLoadStart = Get-Date
 
 # ============================================
+# UTF-8 ENCODING - Required for Spectre.Console, emoji, Polish chars
+# ============================================
+# Without this, box-drawing chars render as ? and Spectre warns on every load.
+$OutputEncoding = [System.Text.UTF8Encoding]::new()
+[Console]::InputEncoding  = [System.Text.UTF8Encoding]::new()
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+
+# ============================================
 # LOAD USER CONFIGURATION
 # ============================================
 $ProfileRoot = Split-Path -Parent $PSCommandPath
@@ -120,6 +128,7 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 . "$ProfileRoot\modules\enhanced-tools.ps1"    # bat, eza, ripgrep, fd, delta
 . "$ProfileRoot\modules\help-system.ps1"       # Custom help command
 . "$ProfileRoot\modules\nerd-fonts.ps1"        # Nerd Fonts detection and installer
+. "$ProfileRoot\modules\power-tools.ps1"       # Unified `power` command - schedule sleep/hibernate/shutdown
 
 # Legacy aliases (deprecated - use linux-compat.ps1 instead)
 # . "$ProfileRoot\modules\aliases.ps1"
