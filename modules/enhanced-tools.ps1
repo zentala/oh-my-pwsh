@@ -8,20 +8,29 @@ if (-not $global:OhMyPwsh_UseEnhancedTools) {
     return
 }
 
+# Use cached tool availability (populated by profile-cache.ps1)
+$_tools = if ($global:_ProfileAvailability) { $global:_ProfileAvailability.Tools } else { $null }
+$_showStatus = $global:_ProfileCacheFresh
+
+function _HasTool($name) {
+    if ($_tools) { return [bool]$_tools.$name }
+    return [bool](Get-Command $name -ErrorAction SilentlyContinue)
+}
+
 # ============================================
 # BAT - Better cat with syntax highlighting
 # ============================================
 # Install: scoop install bat
 # Docs: https://github.com/sharkdp/bat
 
-if (Get-Command bat -ErrorAction SilentlyContinue) {
+if (_HasTool bat) {
     function cat {
         param([Parameter(ValueFromRemainingArguments)]$args)
         bat @args
     }
-    Write-ToolStatus -Name "bat" -Installed $true -Description "enhanced cat"
+    if ($_showStatus) { Write-ToolStatus -Name "bat" -Installed $true -Description "enhanced cat" }
 } else {
-    Write-ToolStatus -Name "bat" -Installed $false -Description "improved cat" -ScoopPackage "bat"
+    if ($_showStatus) { Write-ToolStatus -Name "bat" -Installed $false -Description "improved cat" -ScoopPackage "bat" }
     Set-Alias cat Get-Content
 }
 
@@ -31,7 +40,7 @@ if (Get-Command bat -ErrorAction SilentlyContinue) {
 # Install: scoop install eza
 # Docs: https://github.com/eza-community/eza
 
-if (Get-Command eza -ErrorAction SilentlyContinue) {
+if (_HasTool eza) {
     function ls {
         param([Parameter(ValueFromRemainingArguments)]$args)
         eza --icons @args
@@ -52,11 +61,9 @@ if (Get-Command eza -ErrorAction SilentlyContinue) {
         eza --icons --tree @args
     }
 
-    Write-ToolStatus -Name "eza" -Installed $true -Description "enhanced ls"
+    if ($_showStatus) { Write-ToolStatus -Name "eza" -Installed $true -Description "enhanced ls" }
 } else {
-    Write-ToolStatus -Name "eza" -Installed $false -Description "modern ls" -ScoopPackage "eza"
-    # Fallback to native PowerShell Get-ChildItem
-    # ls/ll/la aliases will use default behavior
+    if ($_showStatus) { Write-ToolStatus -Name "eza" -Installed $false -Description "modern ls" -ScoopPackage "eza" }
 }
 
 # ============================================
@@ -65,16 +72,15 @@ if (Get-Command eza -ErrorAction SilentlyContinue) {
 # Install: scoop install ripgrep
 # Docs: https://github.com/BurntSushi/ripgrep
 
-if (Get-Command rg -ErrorAction SilentlyContinue) {
+if (_HasTool rg) {
     function grep {
         param([Parameter(ValueFromRemainingArguments)]$args)
         rg @args
     }
 
-    Write-ToolStatus -Name "ripgrep" -Installed $true -Description "enhanced grep"
+    if ($_showStatus) { Write-ToolStatus -Name "ripgrep" -Installed $true -Description "enhanced grep" }
 } else {
-    Write-ToolStatus -Name "ripgrep" -Installed $false -Description "faster grep" -ScoopPackage "ripgrep"
-    # Fallback to Select-String (defined in linux-compat.ps1)
+    if ($_showStatus) { Write-ToolStatus -Name "ripgrep" -Installed $false -Description "faster grep" -ScoopPackage "ripgrep" }
     function grep {
         param([Parameter(ValueFromRemainingArguments)]$args)
         Select-String @args
@@ -87,16 +93,15 @@ if (Get-Command rg -ErrorAction SilentlyContinue) {
 # Install: scoop install fd
 # Docs: https://github.com/sharkdp/fd
 
-if (Get-Command fd -ErrorAction SilentlyContinue) {
+if (_HasTool fd) {
     function find {
         param([Parameter(ValueFromRemainingArguments)]$args)
         fd @args
     }
 
-    Write-ToolStatus -Name "fd" -Installed $true -Description "enhanced find"
+    if ($_showStatus) { Write-ToolStatus -Name "fd" -Installed $true -Description "enhanced find" }
 } else {
-    Write-ToolStatus -Name "fd" -Installed $false -Description "faster find" -ScoopPackage "fd"
-    # Fallback to Get-ChildItem -Recurse
+    if ($_showStatus) { Write-ToolStatus -Name "fd" -Installed $false -Description "faster find" -ScoopPackage "fd" }
     function find {
         param([Parameter(ValueFromRemainingArguments)]$args)
         if ($args.Count -gt 0) {
@@ -113,7 +118,7 @@ if (Get-Command fd -ErrorAction SilentlyContinue) {
 # Install: scoop install delta
 # Docs: https://github.com/dandavison/delta
 
-if (Get-Command delta -ErrorAction SilentlyContinue) {
+if (_HasTool delta) {
     # Configure git to use delta
     git config --global core.pager "delta"
     git config --global interactive.diffFilter "delta --color-only"
@@ -122,10 +127,9 @@ if (Get-Command delta -ErrorAction SilentlyContinue) {
     git config --global merge.conflictstyle diff3
     git config --global diff.colorMoved default
 
-    Write-ToolStatus -Name "delta" -Installed $true -Description "enhanced git diff"
+    if ($_showStatus) { Write-ToolStatus -Name "delta" -Installed $true -Description "enhanced git diff" }
 } else {
-    Write-ToolStatus -Name "delta" -Installed $false -Description "better git diff" -ScoopPackage "delta"
-    # Fallback: git will use default pager (less or built-in)
+    if ($_showStatus) { Write-ToolStatus -Name "delta" -Installed $false -Description "better git diff" -ScoopPackage "delta" }
 }
 
 # ============================================

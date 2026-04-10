@@ -56,6 +56,13 @@ if (Test-Path $ConfigPath) {
 . "$ProfileRoot\modules\logger.ps1"
 
 # ============================================
+# LOAD PROFILE CACHE - Must load AFTER logger
+# ============================================
+. "$ProfileRoot\modules\profile-cache.ps1"
+$global:_ProfileAvailability = Get-ToolAvailability
+$global:_ProfileCacheFresh = $global:_ProfileAvailability.Fresh
+
+# ============================================
 # OH-MY-STATS - Display FIRST
 # ============================================
 # Show stats at the TOP, so any errors/warnings during
@@ -83,34 +90,32 @@ foreach ($location in $OhMyStatsLocations) {
 
 # Terminal-Icons
 Import-Module Terminal-Icons -ErrorAction SilentlyContinue
-Write-ModuleStatus -Name "Terminal Icons" -Loaded ([bool](Get-Module Terminal-Icons))
+if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Terminal Icons" -Loaded ([bool](Get-Module Terminal-Icons)) }
 
 # posh-git
 Import-Module posh-git -ErrorAction SilentlyContinue
-Write-ModuleStatus -Name "posh-git" -Loaded ([bool](Get-Module posh-git))
+if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "posh-git" -Loaded ([bool](Get-Module posh-git)) }
 
-# PSFzf
-if (Get-Command fzf -ErrorAction SilentlyContinue) {
+# PSFzf - use cached availability to skip Get-Command
+if ($global:_ProfileAvailability.Tools.fzf) {
     Import-Module PSFzf -ErrorAction SilentlyContinue
     if (Get-Module PSFzf) {
         Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
         Set-PsFzfOption -EnableAliasFuzzyGitStatus
-        Write-ModuleStatus -Name "PSFzf" -Loaded $true -Description "Ctrl+R, Ctrl+T"
+        if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSFzf" -Loaded $true -Description "Ctrl+R, Ctrl+T" }
     } else {
-        Write-ModuleStatus -Name "PSFzf" -Loaded $false
+        if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSFzf" -Loaded $false }
     }
 } else {
-    # Warning (not error) - fzf is optional enhancement
-    Write-InstallHint -Tool "fzf" -Description "fuzzy finder" -InstallCommand "winget install fzf"
+    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "fzf" -Description "fuzzy finder" -InstallCommand "winget install fzf" }
 }
 
-# zoxide
-if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+# zoxide - use cached availability to skip Get-Command
+if ($global:_ProfileAvailability.Tools.zoxide) {
     Invoke-Expression (& { (zoxide init powershell | Out-String) })
-    Write-ModuleStatus -Name "zoxide" -Loaded $true -Description "z command"
+    if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "zoxide" -Loaded $true -Description "z command" }
 } else {
-    # Warning (not error) - zoxide is optional enhancement
-    Write-InstallHint -Tool "zoxide" -Description "smart directory jumping" -InstallCommand "winget install ajeetdsouza.zoxide"
+    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "zoxide" -Description "smart directory jumping" -InstallCommand "winget install ajeetdsouza.zoxide" }
 }
 
 # ============================================
@@ -136,30 +141,31 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 # ============================================
 # OH MY POSH - Theme Engine
 # ============================================
-if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    # Try user's custom theme first, then fallback to standard theme
+# Oh My Posh - use cached availability
+if ($global:_ProfileAvailability.Tools.'oh-my-posh') {
     $omp_config = "$ProfileRoot\themes\quick-term.omp.json"
     if (-not (Test-Path $omp_config)) {
-        # Use standard paradox theme from Oh My Posh
         $omp_config = "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/paradox.omp.json"
     }
 
     oh-my-posh init pwsh --config $omp_config 2>$null | Invoke-Expression
-    Write-ModuleStatus -Name "Oh My Posh" -Loaded $true
+    if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Oh My Posh" -Loaded $true }
 } else {
-    Write-ProfileStatus -Level warning -Primary "Oh My Posh" -Secondary "winget install JanDeDobbeleer.OhMyPosh"
+    if ($_ProfileCacheFresh) { Write-ProfileStatus -Level warning -Primary "Oh My Posh" -Secondary "winget install JanDeDobbeleer.OhMyPosh" }
 }
 
 # PSReadLine
-Write-ModuleStatus -Name "PSReadLine" -Loaded ([bool](Get-Module PSReadLine))
+if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSReadLine" -Loaded ([bool](Get-Module PSReadLine)) }
 
 # Nerd Fonts check (informational only)
-$nfCheck = Test-NerdFontInstalled
-if (-not $nfCheck.Installed) {
-    Write-InstallHint -Tool "Nerd Fonts" -Description "better terminal icons" -InstallCommand "Install-NerdFonts"
+if ($_ProfileCacheFresh) {
+    $nfCheck = Test-NerdFontInstalled
+    if (-not $nfCheck.Installed) {
+        Write-InstallHint -Tool "Nerd Fonts" -Description "better terminal icons" -InstallCommand "Install-NerdFonts"
+    }
 }
 
-Write-Host ""  # Empty line after all modules
+if ($_ProfileCacheFresh) { Write-Host "" }  # Empty line after all modules
 
 # ============================================
 # WELCOME MESSAGE
@@ -173,6 +179,8 @@ if ($global:OhMyPwsh_ShowWelcome) {
     Write-Host ""
     Write-Host "  💡 Type " -NoNewline -ForegroundColor Cyan
     Write-Host "help" -NoNewline -ForegroundColor Yellow
-    Write-Host " to see available commands" -ForegroundColor Cyan
+    Write-Host " for commands, " -NoNewline -ForegroundColor Cyan
+    Write-Host "profile-status" -NoNewline -ForegroundColor Yellow
+    Write-Host " for tool status" -ForegroundColor Cyan
     Write-Host ""
 }

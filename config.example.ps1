@@ -66,3 +66,12 @@ $global:OhMyPwsh_ShowWelcome = $true
 # ============================================
 # Disable fastfetch at startup (set to $false to enable)
 $global:DisableFastfetch = $true
+
+# ============================================
+# STATUS CACHE
+# ============================================
+# Tool availability checks are cached to speed up profile loading.
+# Full status printout happens once per cache refresh, then silent.
+# Use `profile-status` command to force a fresh check anytime.
+# Set cache TTL in hours (default: 24)
+# $global:OhMyPwsh_StatusCacheHours = 24
