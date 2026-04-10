@@ -125,28 +125,46 @@ function Invoke-WithElevation {
 function Get-PowerSchedule {
     <#
     .SYNOPSIS
-    Returns scheduled power actions as objects: Id, Name, Action, NextRun, MinutesLeft
+    Returns scheduled power actions as objects: Id, Name, Action, NextRun, MinutesLeft.
+    Automatically cleans up stale tasks (already executed or missing NextRunTime).
     #>
     $tasks = @(Get-ScheduledTask -TaskName "$($script:PowerTaskPrefix)-*" -ErrorAction SilentlyContinue)
     if (-not $tasks -or $tasks.Count -eq 0) { return @() }
 
+    $now = Get-Date
+    $results = @()
     $i = 0
-    $tasks | Sort-Object { (Get-ScheduledTaskInfo $_).NextRunTime } | ForEach-Object {
-        $i++
-        $info = Get-ScheduledTaskInfo $_
-        $action = ($_.TaskName -split '-')[2]  # OhMyPwsh-Power-<action>-<id>
-        $minutesLeft = if ($info.NextRunTime) {
-            [int][math]::Ceiling(($info.NextRunTime - (Get-Date)).TotalMinutes)
-        } else { $null }
 
-        [PSCustomObject]@{
+    $sorted = $tasks | ForEach-Object {
+        $info = Get-ScheduledTaskInfo $_
+        [PSCustomObject]@{ Task = $_; Info = $info }
+    } | Sort-Object { $_.Info.NextRunTime }
+
+    foreach ($entry in $sorted) {
+        $task = $entry.Task
+        $info = $entry.Info
+        $action = ($task.TaskName -split '-')[2]  # OhMyPwsh-Power-<action>-<id>
+
+        # Auto-cleanup: remove stale tasks (no NextRunTime or already past)
+        if (-not $info.NextRunTime -or $info.NextRunTime -lt $now) {
+            $deleteCmd = "schtasks /delete /tn `"$($task.TaskName)`" /f"
+            Invoke-WithElevation -Command $deleteCmd | Out-Null
+            continue
+        }
+
+        $i++
+        $minutesLeft = [int][math]::Ceiling(($info.NextRunTime - $now).TotalMinutes)
+
+        $results += [PSCustomObject]@{
             Id          = $i
-            Name        = $_.TaskName
+            Name        = $task.TaskName
             Action      = $action
             NextRun     = $info.NextRunTime
             MinutesLeft = $minutesLeft
         }
     }
+
+    return $results
 }
 
 # ============================================
