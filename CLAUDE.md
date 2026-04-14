@@ -622,6 +622,7 @@ Currently using **Unicode only** (Nerd Fonts suspended due to rendering issues):
 - [LOGGING-SYSTEM.md](./docs/LOGGING-SYSTEM.md) - Logging system specification and usage
 - [TESTING-STRATEGY.md](./docs/TESTING-STRATEGY.md) - Testing strategy, coverage targets, CI/CD
 - [linux-compatibility.md](./docs/linux-compatibility.md) - Linux command compatibility layer
+- [CCBLOCKS.md](./docs/CCBLOCKS.md) - Claude Code block scheduler (auto-trigger 5h usage blocks via Task Scheduler)
 
 ### Architecture Decisions
 - [adr/README.md](./adr/README.md) - ADR index and conventions
