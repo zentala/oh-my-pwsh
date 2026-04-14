@@ -61,8 +61,10 @@ gap: 01:00-05:00 (sleeping)
 
 | File                              | Role                                    |
 |-----------------------------------|-----------------------------------------|
-| `modules/ccblocks.ps1`            | CLI module — `ccblocks` command          |
-| `scripts/ccblocks-daemon.ps1`     | Daemon — what Task Scheduler runs       |
+| `modules/ccblocks.ps1`            | CLI module — core block scheduler        |
+| `modules/ccblocks-plan.ps1`       | CLI module — scheduled plan tasks        |
+| `scripts/ccblocks-daemon.ps1`     | Daemon — block trigger (Task Scheduler)  |
+| `scripts/ccblocks-plan-daemon.ps1`| Daemon — plan executor (Task Scheduler)  |
 
 ### Runtime Files (created by ccblocks)
 
@@ -71,6 +73,9 @@ gap: 01:00-05:00 (sleeping)
 | `%APPDATA%\ccblocks\config.json`           | Schedule configuration          |
 | `%APPDATA%\ccblocks\.last-activity`        | Timestamp of last trigger       |
 | `%APPDATA%\ccblocks\ccblocks.log`          | Daemon log                      |
+| `%APPDATA%\ccblocks\plans\plan-*.json`     | Scheduled plan definitions      |
+| `%APPDATA%\ccblocks\plans\plan-*.output.md`| Claude output from plans        |
+| `%APPDATA%\ccblocks\plans\plan-*.log`      | Plan execution logs             |
 
 ### config.json Schema
 
@@ -100,6 +105,50 @@ ccblocks logs                       # Tail log file (default: 50 lines)
 ccblocks logs -Last 100             # Tail more
 ccblocks uninstall                  # Remove task + config
 ccblocks uninstall -Force           # No confirmation prompts
+```
+
+### Scheduled Plans (wake & run Claude)
+
+Schedule Claude to run a specific prompt in a specific directory. PC wakes from sleep to execute.
+
+```powershell
+# Schedule a task (runs in current directory)
+ccblocks plan "refactor the auth module"                    # auto-schedule
+ccblocks plan "write tests for utils" --at 1:00             # run at 1:00 AM
+ccblocks plan "fix all TODOs" --at 3:00 --auto-edit         # allow file changes
+ccblocks plan "analyze codebase" --timeout 120              # 2h timeout (default: 60m)
+
+# Manage plans
+ccblocks plan list                  # List all plans (pending/running/completed/failed)
+ccblocks plan show <id>             # Show details + Claude output
+ccblocks plan cancel <id>           # Cancel a pending plan
+ccblocks plan clean                 # Remove completed plans older than 7 days
+```
+
+**How it works:**
+1. You run `ccblocks plan "prompt"` from your project directory
+2. A one-shot Task Scheduler task is created with `WakeToRun = true`
+3. At the scheduled time, PC wakes from sleep
+4. Daemon runs `claude -p "prompt"` in the saved directory
+5. Output is saved to `%APPDATA%\ccblocks\plans\plan-<id>.output.md`
+
+**Modes:**
+- **Default (read-only):** Claude analyzes but cannot modify files. Safe for overnight analysis.
+- **`--auto-edit`:** Claude can edit files (`--dangerously-skip-permissions`). Use for actual coding tasks.
+
+**Auto-scheduling:** Without `--at`, ccblocks tries `ccusage` to find when the current block expires and schedules 5 minutes after. Falls back to next full hour.
+
+**Plan JSON schema:**
+```json
+{
+  "id": "20260414-0100",
+  "prompt": "refactor the auth module",
+  "workingDirectory": "C:\\code\\myproject",
+  "scheduledAt": "2026-04-14T01:00:00",
+  "status": "pending",
+  "autoEdit": false,
+  "timeoutMinutes": 60
+}
 ```
 
 ## Dependencies

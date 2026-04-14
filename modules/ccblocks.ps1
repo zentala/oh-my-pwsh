@@ -9,6 +9,9 @@ $script:CcblocksLogFile    = Join-Path $script:CcblocksConfigDir 'ccblocks.log'
 $script:CcblocksActivityFile = Join-Path $script:CcblocksConfigDir '.last-activity'
 $script:CcblocksDaemonScript = Join-Path $PSScriptRoot '..\scripts\ccblocks-daemon.ps1'
 $script:CcblocksTaskName   = 'ccblocks'
+$script:CcblocksPlansDir   = Join-Path $script:CcblocksConfigDir 'plans'
+$script:CcblocksPlanDaemonScript = Join-Path $PSScriptRoot '..\scripts\ccblocks-plan-daemon.ps1'
+$script:CcblocksPlanTaskPrefix = 'ccblocks-plan-'
 
 # ── Schedule presets ─────────────────────────────────────────────────────────
 $script:CcblocksPresets = @{
@@ -210,6 +213,15 @@ function _ccblocks_status {
         _cc_info "Last trigger: $($last.Trim())"
     }
 
+    # Pending plans
+    $plans = _cc_plan_read_all
+    $pending = ($plans | Where-Object { $_.status -eq 'pending' }).Count
+    if ($pending -gt 0) {
+        Write-Host ''
+        _cc_head 'Plans'
+        _cc_info "$pending pending plan(s) — ccblocks plan list"
+    }
+
     Write-Host ''
     _cc_info "Logs: $script:CcblocksLogFile"
     _cc_info 'View: ccblocks logs'
@@ -321,6 +333,13 @@ function _ccblocks_uninstall {
         _cc_warn 'Task not found (already removed?)'
     }
 
+    # Clean up plan tasks
+    $planTasks = Get-ScheduledTask -TaskName "$($script:CcblocksPlanTaskPrefix)*" -ErrorAction SilentlyContinue
+    foreach ($pt in $planTasks) {
+        Unregister-ScheduledTask -TaskName $pt.TaskName -Confirm:$false
+    }
+    if ($planTasks) { _cc_ok "Removed $($planTasks.Count) plan task(s)" }
+
     if (Test-Path $script:CcblocksConfigDir) {
         if (-not $Force) {
             $confirm = Read-Host "Remove config dir ($script:CcblocksConfigDir)? [Y/n]"
@@ -385,6 +404,9 @@ function _ccblocks_help {
     Write-Host '    ccblocks setup                      Install Task Scheduler job'
     Write-Host '    ccblocks status                     Show task + schedule status'
     Write-Host '    ccblocks trigger                    Trigger a new block now'
+    Write-Host '    ccblocks plan "prompt" [--at HH:MM] Schedule Claude task (with wake)'
+    Write-Host '    ccblocks plan list                  List scheduled plans'
+    Write-Host '    ccblocks plan help                  Full plan usage'
     Write-Host '    ccblocks schedule list              List preset schedules'
     Write-Host '    ccblocks schedule apply <preset>    Apply: 247 | work | night'
     Write-Host '    ccblocks schedule apply custom      Interactive custom hours'
@@ -414,6 +436,9 @@ function ccblocks {
         [Parameter(Position=2)]
         [string]$Arg2 = '',
 
+        [Parameter(ValueFromRemainingArguments)]
+        [string[]]$Rest,
+
         [switch]$Force,
         [int]$Last = 50
     )
@@ -422,6 +447,7 @@ function ccblocks {
         'setup'     { _ccblocks_setup }
         'status'    { _ccblocks_status }
         'trigger'   { _ccblocks_trigger }
+        'plan'      { _ccblocks_plan -SubArgs ((@($Arg1, $Arg2) + $Rest) | Where-Object { $_ -ne '' }) }
         'schedule'  { _ccblocks_schedule -Action $Arg1 -Arg1 $Arg2 }
         'pause'     { _ccblocks_pause }
         'resume'    { _ccblocks_resume }

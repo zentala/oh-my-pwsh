@@ -80,9 +80,13 @@ oh-my-pwsh/
 │   ├── functions.ps1             # Helper functions (touch, mkcd, .., ...)
 │   ├── git-helpers.ps1           # Git shortcuts (gs, ga, gc, gp, ...)
 │   ├── psreadline.ps1            # PSReadLine configuration
-│   └── environment.ps1           # PATH & environment variables
+│   ├── environment.ps1           # PATH & environment variables
+│   ├── ccblocks.ps1              # Claude Code block scheduler
+│   └── ccblocks-plan.ps1         # Scheduled Claude tasks (wake & run)
 ├── scripts/
-│   └── install-dependencies.ps1  # Automatic dependency installer
+│   ├── install-dependencies.ps1  # Automatic dependency installer
+│   ├── ccblocks-daemon.ps1       # Block trigger daemon (Task Scheduler)
+│   └── ccblocks-plan-daemon.ps1  # Plan executor daemon (Task Scheduler)
 └── themes/                        # Oh My Posh themes (optional)
 ```
 
@@ -327,6 +331,27 @@ find pattern    # Uses fd (faster file finding)
 git diff        # Uses delta (beautiful diffs)
 ```
 
+### Claude Code Block Scheduler (ccblocks)
+
+Automatically trigger Claude Code 5-hour usage blocks via Windows Task Scheduler. PC wakes from sleep to run triggers.
+
+```powershell
+ccblocks setup                    # Interactive setup
+ccblocks status                   # Show schedule & last trigger
+ccblocks schedule apply zentala   # Apply preset schedule
+```
+
+**Schedule overnight Claude tasks** — wake the PC, run Claude with a prompt in a specific directory:
+
+```powershell
+ccblocks plan "refactor auth module" --at 1:00              # Read-only analysis
+ccblocks plan "fix TODOs" --at 3:00 --auto-edit             # Allow file changes
+ccblocks plan "continue the work" --resume <session> --at 2:00  # Resume session
+ccblocks plan list                                          # View all plans
+```
+
+See [CCBLOCKS.md](./docs/CCBLOCKS.md) for full documentation.
+
 ### Admin Access
 
 ```powershell
@@ -449,6 +474,7 @@ This project has comprehensive test coverage with automated CI/CD.
 **For Users:**
 - [STATUS.md](./STATUS.md) - Project snapshot, what works, known issues
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Module structure
+- [CCBLOCKS.md](./docs/CCBLOCKS.md) - Claude Code block scheduler & planned tasks
 - [TESTING-STRATEGY.md](./docs/TESTING-STRATEGY.md) - How to test
 
 **For Developers:**
