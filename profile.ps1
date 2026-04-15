@@ -134,8 +134,7 @@ if ($global:_ProfileAvailability.Tools.zoxide) {
 . "$ProfileRoot\modules\help-system.ps1"       # Custom help command
 . "$ProfileRoot\modules\nerd-fonts.ps1"        # Nerd Fonts detection and installer
 . "$ProfileRoot\modules\power-tools.ps1"       # Unified `power` command - schedule sleep/hibernate/shutdown
-. "$ProfileRoot\modules\ccblocks.ps1"          # Claude Code block scheduler (Task Scheduler)
-. "$ProfileRoot\modules\ccblocks-plan.ps1"     # Claude Code scheduled plan tasks (wake & run)
+. "$ProfileRoot\modules\cc\main.ps1"           # Claude Code CLI (cc blocks + cc plan)
 
 # Legacy aliases (deprecated - use linux-compat.ps1 instead)
 # . "$ProfileRoot\modules\aliases.ps1"

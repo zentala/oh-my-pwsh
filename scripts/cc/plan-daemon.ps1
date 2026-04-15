@@ -1,14 +1,14 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    ccblocks plan daemon - runs Claude Code with a saved prompt in a saved directory.
+    cc plan daemon - runs Claude Code with a saved prompt in a saved directory.
     Called by Windows Task Scheduler (one-shot), not directly by the user.
 
 .PARAMETER PlanFile
-    Path to the plan JSON file in %APPDATA%\ccblocks\plans\
+    Path to the plan JSON file in %APPDATA%\cc\plans\
 
 .ENVIRONMENT
-    CCBLOCKS_DEBUG=1  Show verbose output
+    CC_DEBUG=1  Show verbose output
 #>
 
 param(
@@ -20,7 +20,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # ── Config ─────────────────────────────────────────────────────────────────
-$ConfigDir = Join-Path $env:APPDATA 'ccblocks'
+$ConfigDir = Join-Path $env:APPDATA 'cc'
 $PlansDir  = Join-Path $ConfigDir 'plans'
 
 # ── Helpers ────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ function Write-PlanLog {
     if ($script:PlanLogFile) {
         Add-Content -Path $script:PlanLogFile -Value $line -Encoding UTF8
     }
-    if ($env:CCBLOCKS_DEBUG -eq '1') { Write-Host $line }
+    if ($env:CC_DEBUG -eq '1') { Write-Host $line }
 }
 
 function Find-ClaudeBin {

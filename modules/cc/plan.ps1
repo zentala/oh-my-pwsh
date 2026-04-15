@@ -1,7 +1,6 @@
 # ============================================
-# ccblocks plan - schedule Claude tasks with wake-from-sleep
-# Extends ccblocks with one-shot scheduled Claude executions
-# Depends on: ccblocks.ps1 (loaded first, provides shared vars & helpers)
+# cc plan - schedule Claude tasks with wake-from-sleep
+# Depends on: cc/main.ps1 (loaded first, provides shared vars & helpers)
 # ============================================
 
 # ── Plan helpers ─────────────────────────────────────────────────────────────
@@ -9,11 +8,11 @@
 function _cc_plan_generate_id {
     param([datetime]$ScheduledAt)
     $base = $ScheduledAt.ToString('yyyyMMdd-HHmm')
-    $existing = Join-Path $script:CcblocksPlansDir "plan-$base.json"
+    $existing = Join-Path $script:CcPlansDir "plan-$base.json"
     if (-not (Test-Path $existing)) { return $base }
     for ($i = 2; $i -le 9; $i++) {
         $candidate = "$base-$i"
-        $path = Join-Path $script:CcblocksPlansDir "plan-$candidate.json"
+        $path = Join-Path $script:CcPlansDir "plan-$candidate.json"
         if (-not (Test-Path $path)) { return $candidate }
     }
     _cc_err 'Too many plans at the same time'; return $null
@@ -45,8 +44,8 @@ function _cc_plan_auto_time {
 function _cc_plan_register_task {
     param([hashtable]$Plan)
 
-    $daemonPath = (Resolve-Path $script:CcblocksPlanDaemonScript).Path
-    $planFile = Join-Path $script:CcblocksPlansDir "plan-$($Plan.id).json"
+    $daemonPath = (Resolve-Path $script:CcPlanDaemonScript).Path
+    $planFile = Join-Path $script:CcPlansDir "plan-$($Plan.id).json"
 
     $action = New-ScheduledTaskAction `
         -Execute 'pwsh.exe' `
@@ -59,7 +58,7 @@ function _cc_plan_register_task {
         -ExecutionTimeLimit (New-TimeSpan -Minutes $Plan.timeoutMinutes) `
         -StartWhenAvailable
 
-    $taskName = "$($script:CcblocksPlanTaskPrefix)$($Plan.id)"
+    $taskName = "$($script:CcPlanTaskPrefix)$($Plan.id)"
 
     # Remove if exists (re-schedule case)
     $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
@@ -72,13 +71,13 @@ function _cc_plan_register_task {
         -Action $action `
         -Trigger $trigger `
         -Settings $settings `
-        -Description "ccblocks plan: $($Plan.prompt.Substring(0, [Math]::Min(80, $Plan.prompt.Length)))" `
+        -Description "cc plan: $($Plan.prompt.Substring(0, [Math]::Min(80, $Plan.prompt.Length)))" `
         -RunLevel Limited | Out-Null
 }
 
 function _cc_plan_read_all {
-    New-Item -ItemType Directory -Path $script:CcblocksPlansDir -Force | Out-Null
-    $files = Get-ChildItem -Path $script:CcblocksPlansDir -Filter 'plan-*.json' -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Path $script:CcPlansDir -Force | Out-Null
+    $files = Get-ChildItem -Path $script:CcPlansDir -Filter 'plan-*.json' -ErrorAction SilentlyContinue
     $plans = @()
     foreach ($f in $files) {
         $plans += (Get-Content $f.FullName -Raw | ConvertFrom-Json)
@@ -88,24 +87,24 @@ function _cc_plan_read_all {
 
 # ── Plan subcommands ─────────────────────────────────────────────────────────
 
-function _ccblocks_plan {
+function _cc_plan_dispatch {
     param([string[]]$SubArgs)
 
     if ($SubArgs.Count -eq 0 -or [string]::IsNullOrWhiteSpace($SubArgs[0])) {
-        _ccblocks_plan_help; return
+        _cc_plan_help; return
     }
 
     switch ($SubArgs[0]) {
-        'list'   { _ccblocks_plan_list }
-        'show'   { _ccblocks_plan_show -Id $SubArgs[1] }
-        'cancel' { _ccblocks_plan_cancel -Id $SubArgs[1] }
-        'clean'  { _ccblocks_plan_clean }
-        'help'   { _ccblocks_plan_help }
-        default  { _ccblocks_plan_create -SubArgs $SubArgs }
+        'list'   { _cc_plan_list }
+        'show'   { _cc_plan_show -Id $SubArgs[1] }
+        'cancel' { _cc_plan_cancel -Id $SubArgs[1] }
+        'clean'  { _cc_plan_clean }
+        'help'   { _cc_plan_help }
+        default  { _cc_plan_create -SubArgs $SubArgs }
     }
 }
 
-function _ccblocks_plan_create {
+function _cc_plan_create {
     param([string[]]$SubArgs)
 
     # Parse arguments
@@ -125,7 +124,7 @@ function _ccblocks_plan_create {
     }
 
     if ([string]::IsNullOrWhiteSpace($prompt)) {
-        _cc_err 'Usage: ccblocks plan "your prompt" [--at HH:MM] [--auto-edit] [--resume SESSION] [--timeout N]'
+        _cc_err 'Usage: cc plan "your prompt" [--at HH:MM] [--auto-edit] [--resume SESSION] [--timeout N]'
         return
     }
 
@@ -155,7 +154,7 @@ function _ccblocks_plan_create {
     }
 
     # Generate ID
-    New-Item -ItemType Directory -Path $script:CcblocksPlansDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $script:CcPlansDir -Force | Out-Null
     $id = _cc_plan_generate_id -ScheduledAt $scheduledAt
     if (-not $id) { return }
 
@@ -170,7 +169,7 @@ function _ccblocks_plan_create {
         autoEdit         = $autoEdit
         resumeSession    = $resumeSession
         timeoutMinutes   = $timeout
-        taskName         = "$($script:CcblocksPlanTaskPrefix)$id"
+        taskName         = "$($script:CcPlanTaskPrefix)$id"
         completedAt      = $null
         exitCode         = $null
         logFile          = "plan-$id.log"
@@ -178,7 +177,7 @@ function _ccblocks_plan_create {
     }
 
     # Save plan JSON
-    $planFile = Join-Path $script:CcblocksPlansDir "plan-$id.json"
+    $planFile = Join-Path $script:CcPlansDir "plan-$id.json"
     $plan | ConvertTo-Json -Depth 5 | Set-Content $planFile -Encoding UTF8
 
     # Register Task Scheduler (with WakeToRun)
@@ -197,14 +196,14 @@ function _ccblocks_plan_create {
     _cc_info "Timeout:   $timeout min"
     _cc_info "WakeToRun: yes (PC will wake from sleep)"
     Write-Host ''
-    _cc_info "View plans:   ccblocks plan list"
-    _cc_info "Cancel:       ccblocks plan cancel $id"
+    _cc_info "View plans:   cc plan list"
+    _cc_info "Cancel:       cc plan cancel $id"
 }
 
-function _ccblocks_plan_list {
+function _cc_plan_list {
     $plans = _cc_plan_read_all
     if ($plans.Count -eq 0) {
-        _cc_info 'No plans scheduled. Create one: ccblocks plan "your prompt" --at HH:MM'
+        _cc_info 'No plans scheduled. Create one: cc plan "your prompt" --at HH:MM'
         return
     }
 
@@ -233,14 +232,14 @@ function _ccblocks_plan_list {
     Write-Host ''
 }
 
-function _ccblocks_plan_show {
+function _cc_plan_show {
     param([string]$Id)
     if ([string]::IsNullOrWhiteSpace($Id)) {
-        _cc_err 'Usage: ccblocks plan show <id>'
+        _cc_err 'Usage: cc plan show <id>'
         return
     }
 
-    $planFile = Join-Path $script:CcblocksPlansDir "plan-$Id.json"
+    $planFile = Join-Path $script:CcPlansDir "plan-$Id.json"
     if (-not (Test-Path $planFile)) {
         _cc_err "Plan not found: $Id"
         return
@@ -266,7 +265,7 @@ function _ccblocks_plan_show {
     }
 
     # Show output if exists
-    $outputPath = Join-Path $script:CcblocksPlansDir $p.outputFile
+    $outputPath = Join-Path $script:CcPlansDir $p.outputFile
     if (Test-Path $outputPath) {
         Write-Host ''
         _cc_head 'Output (first 30 lines)'
@@ -276,20 +275,20 @@ function _ccblocks_plan_show {
     }
 
     # Show log if exists
-    $logPath = Join-Path $script:CcblocksPlansDir $p.logFile
+    $logPath = Join-Path $script:CcPlansDir $p.logFile
     if (Test-Path $logPath) {
         _cc_info "Log: $logPath"
     }
 }
 
-function _ccblocks_plan_cancel {
+function _cc_plan_cancel {
     param([string]$Id)
     if ([string]::IsNullOrWhiteSpace($Id)) {
-        _cc_err 'Usage: ccblocks plan cancel <id>'
+        _cc_err 'Usage: cc plan cancel <id>'
         return
     }
 
-    $planFile = Join-Path $script:CcblocksPlansDir "plan-$Id.json"
+    $planFile = Join-Path $script:CcPlansDir "plan-$Id.json"
     if (-not (Test-Path $planFile)) {
         _cc_err "Plan not found: $Id"
         return
@@ -303,7 +302,7 @@ function _ccblocks_plan_cancel {
     }
 
     # Unregister Task Scheduler task
-    $taskName = "$($script:CcblocksPlanTaskPrefix)$Id"
+    $taskName = "$($script:CcPlanTaskPrefix)$Id"
     $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     if ($task) {
         if ($task.State -eq 'Running') {
@@ -320,7 +319,7 @@ function _ccblocks_plan_cancel {
     _cc_ok "Plan $Id cancelled"
 }
 
-function _ccblocks_plan_clean {
+function _cc_plan_clean {
     $plans = _cc_plan_read_all
     $cutoff = (Get-Date).AddDays(-7)
     $removed = 0
@@ -328,16 +327,16 @@ function _ccblocks_plan_clean {
     foreach ($p in $plans) {
         if ($p.status -in @('completed', 'failed', 'cancelled') -and $p.completedAt) {
             if (([datetime]$p.completedAt) -lt $cutoff) {
-                $planFile = Join-Path $script:CcblocksPlansDir "plan-$($p.id).json"
-                $outputFile = Join-Path $script:CcblocksPlansDir $p.outputFile
-                $logFile = Join-Path $script:CcblocksPlansDir $p.logFile
+                $planFile = Join-Path $script:CcPlansDir "plan-$($p.id).json"
+                $outputFile = Join-Path $script:CcPlansDir $p.outputFile
+                $logFile = Join-Path $script:CcPlansDir $p.logFile
 
                 Remove-Item $planFile -Force -ErrorAction SilentlyContinue
                 Remove-Item $outputFile -Force -ErrorAction SilentlyContinue
                 Remove-Item $logFile -Force -ErrorAction SilentlyContinue
 
                 # Clean up task if still registered
-                $taskName = "$($script:CcblocksPlanTaskPrefix)$($p.id)"
+                $taskName = "$($script:CcPlanTaskPrefix)$($p.id)"
                 $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
                 if ($task) { Unregister-ScheduledTask -TaskName $taskName -Confirm:$false }
 
@@ -353,22 +352,22 @@ function _ccblocks_plan_clean {
     }
 }
 
-function _ccblocks_plan_help {
+function _cc_plan_help {
     Write-Host ''
-    Write-Host '  ccblocks plan — schedule Claude tasks with wake-from-sleep' -ForegroundColor Cyan
+    Write-Host '  cc plan — schedule Claude tasks with wake-from-sleep' -ForegroundColor Cyan
     Write-Host ''
     Write-Host '  Create:' -ForegroundColor White
-    Write-Host '    ccblocks plan "your prompt"                  Auto-schedule (next block expiry or next hour)'
-    Write-Host '    ccblocks plan "your prompt" --at 1:00        Schedule for specific time'
-    Write-Host '    ccblocks plan "msg" --resume <id>              Resume existing session with message'
-    Write-Host '    ccblocks plan "your prompt" --auto-edit      Allow file changes (dangerous)'
-    Write-Host '    ccblocks plan "your prompt" --timeout 120    Set timeout in minutes (default: 60)'
+    Write-Host '    cc plan "your prompt"                  Auto-schedule (next block expiry or next hour)'
+    Write-Host '    cc plan "your prompt" --at 1:00        Schedule for specific time'
+    Write-Host '    cc plan "msg" --resume <id>              Resume existing session with message'
+    Write-Host '    cc plan "your prompt" --auto-edit      Allow file changes (dangerous)'
+    Write-Host '    cc plan "your prompt" --timeout 120    Set timeout in minutes (default: 60)'
     Write-Host ''
     Write-Host '  Manage:' -ForegroundColor White
-    Write-Host '    ccblocks plan list                           List all plans'
-    Write-Host '    ccblocks plan show <id>                      Show plan details + output'
-    Write-Host '    ccblocks plan cancel <id>                    Cancel a pending plan'
-    Write-Host '    ccblocks plan clean                          Remove old completed plans (>7 days)'
+    Write-Host '    cc plan list                           List all plans'
+    Write-Host '    cc plan show <id>                      Show plan details + output'
+    Write-Host '    cc plan cancel <id>                    Cancel a pending plan'
+    Write-Host '    cc plan clean                          Remove old completed plans (>7 days)'
     Write-Host ''
     Write-Host '  Notes:' -ForegroundColor White
     Write-Host '    - Plans run in the directory where you created them'

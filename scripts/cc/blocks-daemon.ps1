@@ -1,21 +1,21 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    ccblocks daemon - triggers a new Claude Code 5-hour block.
-    This script is called by Windows Task Scheduler, not directly by the user.
+    cc blocks daemon - triggers a new Claude Code 5-hour block.
+    Called by Windows Task Scheduler, not directly by the user.
 
 .ENVIRONMENT
-    CCBLOCKS_DEBUG=1        Keep claude stdout visible in logs
-    CCBLOCKS_STRICT_VERIFY=1  Exit 1 if ccusage shows no active block
-    CCBLOCKS_TEST_NO_CLAUDE=1  Skip claude lookup (for tests)
+    CC_DEBUG=1              Keep claude stdout visible in logs
+    CC_STRICT_VERIFY=1      Exit 1 if ccusage shows no active block
+    CC_TEST_NO_CLAUDE=1     Skip claude lookup (for tests)
 #>
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # ── Config paths ────────────────────────────────────────────────────────────
-$ConfigDir  = Join-Path $env:APPDATA 'ccblocks'
-$LogFile    = Join-Path $ConfigDir 'ccblocks.log'
+$ConfigDir  = Join-Path $env:APPDATA 'cc'
+$LogFile    = Join-Path $ConfigDir 'cc.log'
 $ActivityFile = Join-Path $ConfigDir '.last-activity'
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ function Write-Log {
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     $line = "[$timestamp] [$Level] $Message"
     Add-Content -Path $LogFile -Value $line -Encoding UTF8
-    if ($env:CCBLOCKS_DEBUG -eq '1') { Write-Host $line }
+    if ($env:CC_DEBUG -eq '1') { Write-Host $line }
 }
 
 function Find-ClaudeBin {
@@ -71,7 +71,7 @@ try {
     New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
 
     # Test mode
-    if ($env:CCBLOCKS_TEST_NO_CLAUDE -eq '1') {
+    if ($env:CC_TEST_NO_CLAUDE -eq '1') {
         Write-Log 'Test mode: skipping claude lookup'
         exit 0
     }
@@ -88,7 +88,7 @@ try {
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     Write-Log "Triggering new 5-hour block at $timestamp"
 
-    $debug = $env:CCBLOCKS_DEBUG -eq '1'
+    $debug = $env:CC_DEBUG -eq '1'
 
     # Run claude with timeout — pipe "." as input to trigger a block
     $bin = $claudeBin
@@ -133,7 +133,7 @@ try {
         Write-Log 'ccusage not found; skipping verification' 'WARNING'
     }
 
-    if ($verifyFail -and $env:CCBLOCKS_STRICT_VERIFY -eq '1') {
+    if ($verifyFail -and $env:CC_STRICT_VERIFY -eq '1') {
         Write-Log 'Strict verify: no active block detected, exiting 1' 'ERROR'
         exit 1
     }

@@ -1,4 +1,4 @@
-# ccblocks — Claude Code Block Scheduler (Windows)
+# cc — Claude Code CLI for Windows (blocks + plans)
 
 > PowerShell port of [designorant/ccblocks](https://github.com/designorant/ccblocks) (originally Bash for macOS/Linux)
 
@@ -24,7 +24,7 @@ Claude Code (the CLI tool `claude`) uses **5-hour rolling usage blocks** as a ra
         │  2. echo "." | claude (15s timeout)         │
         │  3. Verify via ccusage (optional)           │
         │  4. Write timestamp to .last-activity       │
-        │  5. Log result to ccblocks.log              │
+        │  5. Log result to cc.log              │
         └─────────────────────────────────────────────┘
 ```
 
@@ -61,21 +61,21 @@ gap: 01:00-05:00 (sleeping)
 
 | File                              | Role                                    |
 |-----------------------------------|-----------------------------------------|
-| `modules/ccblocks.ps1`            | CLI module — core block scheduler        |
-| `modules/ccblocks-plan.ps1`       | CLI module — scheduled plan tasks        |
-| `scripts/ccblocks-daemon.ps1`     | Daemon — block trigger (Task Scheduler)  |
-| `scripts/ccblocks-plan-daemon.ps1`| Daemon — plan executor (Task Scheduler)  |
+| `modules/cc/main.ps1`            | CLI module — core block scheduler        |
+| `modules/cc/plan.ps1`       | CLI module — scheduled plan tasks        |
+| `scripts/cc/blocks-daemon.ps1`     | Daemon — block trigger (Task Scheduler)  |
+| `scripts/cc/plan-daemon.ps1`| Daemon — plan executor (Task Scheduler)  |
 
 ### Runtime Files (created by ccblocks)
 
 | Path                                       | Content                         |
 |--------------------------------------------|---------------------------------|
-| `%APPDATA%\ccblocks\config.json`           | Schedule configuration          |
-| `%APPDATA%\ccblocks\.last-activity`        | Timestamp of last trigger       |
-| `%APPDATA%\ccblocks\ccblocks.log`          | Daemon log                      |
-| `%APPDATA%\ccblocks\plans\plan-*.json`     | Scheduled plan definitions      |
-| `%APPDATA%\ccblocks\plans\plan-*.output.md`| Claude output from plans        |
-| `%APPDATA%\ccblocks\plans\plan-*.log`      | Plan execution logs             |
+| `%APPDATA%\cc\config.json`           | Schedule configuration          |
+| `%APPDATA%\cc\.last-activity`        | Timestamp of last trigger       |
+| `%APPDATA%\cc\cc.log`          | Daemon log                      |
+| `%APPDATA%\cc\plans\plan-*.json`     | Scheduled plan definitions      |
+| `%APPDATA%\cc\plans\plan-*.output.md`| Claude output from plans        |
+| `%APPDATA%\cc\plans\plan-*.log`      | Plan execution logs             |
 
 ### config.json Schema
 
@@ -93,18 +93,18 @@ gap: 01:00-05:00 (sleeping)
 ## CLI Usage
 
 ```powershell
-ccblocks setup                      # Interactive first-time setup
-ccblocks status                     # Show task + schedule + last trigger
-ccblocks trigger                    # Fire the daemon manually right now
-ccblocks schedule list              # List all presets
-ccblocks schedule apply zentala     # Apply a preset
-ccblocks schedule apply custom      # Interactive custom hours
-ccblocks pause                      # Disable task (vacation)
-ccblocks resume                     # Re-enable task
-ccblocks logs                       # Tail log file (default: 50 lines)
-ccblocks logs -Last 100             # Tail more
-ccblocks uninstall                  # Remove task + config
-ccblocks uninstall -Force           # No confirmation prompts
+cc blocks setup                      # Interactive first-time setup
+cc blocks status                     # Show task + schedule + last trigger
+cc blocks trigger                    # Fire the daemon manually right now
+cc blocks schedule list              # List all presets
+cc blocks schedule apply zentala     # Apply a preset
+cc blocks schedule apply custom      # Interactive custom hours
+cc blocks pause                      # Disable task (vacation)
+cc blocks resume                     # Re-enable task
+cc blocks logs                       # Tail log file (default: 50 lines)
+cc blocks logs -Last 100             # Tail more
+cc blocks uninstall                  # Remove task + config
+cc blocks uninstall -Force           # No confirmation prompts
 ```
 
 ### Scheduled Plans (wake & run Claude)
@@ -113,24 +113,24 @@ Schedule Claude to run a specific prompt in a specific directory. PC wakes from 
 
 ```powershell
 # Schedule a task (runs in current directory)
-ccblocks plan "refactor the auth module"                    # auto-schedule
-ccblocks plan "write tests for utils" --at 1:00             # run at 1:00 AM
-ccblocks plan "fix all TODOs" --at 3:00 --auto-edit         # allow file changes
-ccblocks plan "analyze codebase" --timeout 120              # 2h timeout (default: 60m)
+cc plan "refactor the auth module"                    # auto-schedule
+cc plan "write tests for utils" --at 1:00             # run at 1:00 AM
+cc plan "fix all TODOs" --at 3:00 --auto-edit         # allow file changes
+cc plan "analyze codebase" --timeout 120              # 2h timeout (default: 60m)
 
 # Manage plans
-ccblocks plan list                  # List all plans (pending/running/completed/failed)
-ccblocks plan show <id>             # Show details + Claude output
-ccblocks plan cancel <id>           # Cancel a pending plan
-ccblocks plan clean                 # Remove completed plans older than 7 days
+cc plan list                  # List all plans (pending/running/completed/failed)
+cc plan show <id>             # Show details + Claude output
+cc plan cancel <id>           # Cancel a pending plan
+cc plan clean                 # Remove completed plans older than 7 days
 ```
 
 **How it works:**
-1. You run `ccblocks plan "prompt"` from your project directory
+1. You run `cc plan "prompt"` from your project directory
 2. A one-shot Task Scheduler task is created with `WakeToRun = true`
 3. At the scheduled time, PC wakes from sleep
 4. Daemon runs `claude -p "prompt"` in the saved directory
-5. Output is saved to `%APPDATA%\ccblocks\plans\plan-<id>.output.md`
+5. Output is saved to `%APPDATA%\cc\plans\plan-<id>.output.md`
 
 **Modes:**
 - **Default (read-only):** Claude analyzes but cannot modify files. Safe for overnight analysis.
