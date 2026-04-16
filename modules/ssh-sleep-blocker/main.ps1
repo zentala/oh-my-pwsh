@@ -5,7 +5,7 @@
 
 # ── Paths & task metadata ────────────────────────────────────────────────────
 $script:SshBlockerTaskName  = 'SSHSleepBlocker'
-$script:SshBlockerLogDir    = Join-Path $env:APPDATA 'ssh-sleep-blocker'
+$script:SshBlockerLogDir    = Join-Path $env:ProgramData 'ssh-sleep-blocker'
 $script:SshBlockerLogFile   = Join-Path $script:SshBlockerLogDir 'daemon.log'
 $script:SshBlockerDaemonPs1 = Join-Path $PSScriptRoot '..\..\scripts\ssh-sleep-blocker\daemon.ps1'
 $script:SshBlockerDaemonCmd = Join-Path $PSScriptRoot '..\..\scripts\ssh-sleep-blocker\daemon.cmd'

@@ -29,7 +29,7 @@ public class SleepBlocker {
 }
 "@
 
-$logDir       = Join-Path $env:APPDATA 'ssh-sleep-blocker'
+$logDir       = Join-Path $env:ProgramData 'ssh-sleep-blocker'
 $logFile      = Join-Path $logDir 'daemon.log'
 $checkInterval = 30  # seconds
 

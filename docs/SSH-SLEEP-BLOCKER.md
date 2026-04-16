@@ -37,7 +37,7 @@ are written only on state transitions to avoid log spam.
 | `modules/ssh-sleep-blocker/main.ps1` | CLI (`ssh-sleep-blocker <cmd>`) |
 | `scripts/ssh-sleep-blocker/daemon.ps1` | Long-running polling daemon |
 | `scripts/ssh-sleep-blocker/daemon.cmd` | CMD wrapper (Task Scheduler entry) |
-| `%APPDATA%\ssh-sleep-blocker\daemon.log` | Runtime log |
+| `%ProgramData%\ssh-sleep-blocker\daemon.log` | Runtime log (shared, daemon runs as SYSTEM) |
 
 ## Commands
 
@@ -71,5 +71,5 @@ The task runs as `SYSTEM`, so it survives user logoff.
   rather than S3 (Sleep). `SetThreadExecutionState` does not block hibernation.
   Switch to Sleep or Hybrid Sleep in Power Options.
 - **"Task not installed"** — run `ssh-sleep-blocker setup` (admin).
-- **Daemon silent after boot** — check `%APPDATA%\ssh-sleep-blocker\daemon.log`
+- **Daemon silent after boot** — check `%ProgramData%\ssh-sleep-blocker\daemon.log`
   and Task Scheduler History for the `SSHSleepBlocker` task.
