@@ -81,15 +81,20 @@ oh-my-pwsh/
 │   ├── git-helpers.ps1           # Git shortcuts (gs, ga, gc, gp, ...)
 │   ├── psreadline.ps1            # PSReadLine configuration
 │   ├── environment.ps1           # PATH & environment variables
-│   └── cc/                       # Claude Code CLI (cc blocks + cc plan)
-│       ├── main.ps1              # Entry point, shared helpers
-│       ├── blocks.ps1            # Block scheduler subcommands
-│       └── plan.ps1              # Scheduled task subcommands
+│   ├── cc/                       # Claude Code CLI (cc blocks + cc plan)
+│   │   ├── main.ps1              # Entry point, shared helpers
+│   │   ├── blocks.ps1            # Block scheduler subcommands
+│   │   └── plan.ps1              # Scheduled task subcommands
+│   └── ssh-sleep-blocker/        # Keep Windows awake during SSH sessions
+│       └── main.ps1              # CLI (setup/status/logs/...)
 ├── scripts/
 │   ├── install-dependencies.ps1  # Automatic dependency installer
-│   └── cc/                       # cc daemon scripts (Task Scheduler)
-│       ├── blocks-daemon.ps1     # Block trigger daemon
-│       └── plan-daemon.ps1       # Plan executor daemon
+│   ├── cc/                       # cc daemon scripts (Task Scheduler)
+│   │   ├── blocks-daemon.ps1     # Block trigger daemon
+│   │   └── plan-daemon.ps1       # Plan executor daemon
+│   └── ssh-sleep-blocker/        # SSH sleep blocker daemon
+│       ├── daemon.ps1            # Polls port 22, toggles SetThreadExecutionState
+│       └── daemon.cmd            # Task Scheduler wrapper
 └── themes/                        # Oh My Posh themes (optional)
 ```
 

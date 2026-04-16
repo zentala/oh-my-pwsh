@@ -135,6 +135,7 @@ if ($global:_ProfileAvailability.Tools.zoxide) {
 . "$ProfileRoot\modules\nerd-fonts.ps1"        # Nerd Fonts detection and installer
 . "$ProfileRoot\modules\power-tools.ps1"       # Unified `power` command - schedule sleep/hibernate/shutdown
 . "$ProfileRoot\modules\cc\main.ps1"           # Claude Code CLI (cc blocks + cc plan)
+. "$ProfileRoot\modules\ssh-sleep-blocker\main.ps1"  # Keep Windows awake during SSH sessions
 
 # Legacy aliases (deprecated - use linux-compat.ps1 instead)
 # . "$ProfileRoot\modules\aliases.ps1"
