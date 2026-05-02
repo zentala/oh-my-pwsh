@@ -33,6 +33,55 @@ function Get-ProfileCache {
     }
 }
 
+function ConvertTo-CacheTimestampDateTime {
+    param(
+        [Parameter(Mandatory = $false)]
+        $Timestamp
+    )
+
+    if (-not $Timestamp) {
+        return $null
+    }
+
+    if ($Timestamp -is [DateTime]) {
+        return $Timestamp
+    }
+
+    if ($Timestamp -is [DateTimeOffset]) {
+        return $Timestamp.LocalDateTime
+    }
+
+    $parsed = [DateTime]::MinValue
+    if ([DateTime]::TryParseExact(
+        [string]$Timestamp,
+        "o",
+        [System.Globalization.CultureInfo]::InvariantCulture,
+        [System.Globalization.DateTimeStyles]::RoundtripKind,
+        [ref]$parsed
+    )) {
+        return $parsed
+    }
+
+    if ([DateTime]::TryParse(
+        [string]$Timestamp,
+        [System.Globalization.CultureInfo]::InvariantCulture,
+        [System.Globalization.DateTimeStyles]::AssumeLocal,
+        [ref]$parsed
+    )) {
+        return $parsed
+    }
+
+    if ([DateTime]::TryParse(
+        [string]$Timestamp,
+        [System.Globalization.CultureInfo]::CurrentCulture,
+        [System.Globalization.DateTimeStyles]::AssumeLocal,
+        [ref]$parsed
+    )) {
+        return $parsed
+    }
+
+    return $null
+}
 function Test-ProfileCacheValid {
     <#
     .SYNOPSIS
@@ -42,7 +91,11 @@ function Test-ProfileCacheValid {
     if (-not $cache -or -not $cache.Timestamp) {
         return $false
     }
-    $age = (Get-Date) - [DateTime]::Parse($cache.Timestamp)
+    $timestamp = ConvertTo-CacheTimestampDateTime -Timestamp $cache.Timestamp
+    if (-not $timestamp) {
+        return $false
+    }
+    $age = (Get-Date) - $timestamp
     return $age.TotalHours -lt (Get-CacheTTLHours)
 }
 
@@ -158,7 +211,10 @@ function Show-ProfileStatus {
     }
 
     Write-Host ""
-    $cacheAge = (Get-Date) - [DateTime]::Parse($cache.Timestamp)
+    $cacheTimestamp = ConvertTo-CacheTimestampDateTime -Timestamp $cache.Timestamp
+    if ($cacheTimestamp) {
+        $cacheAge = (Get-Date) - $cacheTimestamp
+    }
     Write-Host "  Cache refreshed just now. TTL: $(Get-CacheTTLHours)h" -ForegroundColor DarkGray
     Write-Host ""
 }
