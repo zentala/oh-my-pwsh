@@ -140,20 +140,20 @@ if ($global:_ProfileAvailability.Tools.zoxide) {
 # . "$ProfileRoot\modules\aliases.ps1"
 
 # ============================================
-# OH MY POSH - Theme Engine
+# OH MY POSH - Theme Engine [DISABLED FOR TESTING]
 # ============================================
 # Oh My Posh - use cached availability
-if ($global:_ProfileAvailability.Tools.'oh-my-posh') {
-    $omp_config = "$ProfileRoot\themes\quick-term.omp.json"
-    if (-not (Test-Path $omp_config)) {
-        $omp_config = "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/paradox.omp.json"
-    }
-
-    oh-my-posh init pwsh --config $omp_config 2>$null | Invoke-Expression
-    if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Oh My Posh" -Loaded $true }
-} else {
-    if ($_ProfileCacheFresh) { Write-ProfileStatus -Level warning -Primary "Oh My Posh" -Secondary "winget install JanDeDobbeleer.OhMyPosh" }
-}
+# if ($global:_ProfileAvailability.Tools.'oh-my-posh') {
+#     $omp_config = "$ProfileRoot\themes\quick-term.omp.json"
+#     if (-not (Test-Path $omp_config)) {
+#         $omp_config = "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/paradox.omp.json"
+#     }
+#
+#     oh-my-posh init pwsh --config $omp_config 2>$null | Invoke-Expression
+#     if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Oh My Posh" -Loaded $true }
+# } else {
+#     if ($_ProfileCacheFresh) { Write-ProfileStatus -Level warning -Primary "Oh My Posh" -Secondary "winget install JanDeDobbeleer.OhMyPosh" }
+# }
 
 # PSReadLine
 if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSReadLine" -Loaded ([bool](Get-Module PSReadLine)) }
