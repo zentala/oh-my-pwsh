@@ -342,3 +342,25 @@ Describe "Write-ToolStatus" {
         }
     }
 }
+
+Describe "Write-SkippedStatus" {
+    BeforeEach {
+        Mock Write-ProfileStatus {}
+    }
+
+    It "Uses info level" {
+        Write-SkippedStatus -Name "Oh My Posh" -Reason "agent session"
+
+        Should -Invoke Write-ProfileStatus -ParameterFilter {
+            $Level -eq "info"
+        }
+    }
+
+    It "Formats the skip reason in secondary text" {
+        Write-SkippedStatus -Name "Oh My Posh" -Reason "agent session"
+
+        Should -Invoke Write-ProfileStatus -ParameterFilter {
+            $Primary -eq "Oh My Posh" -and $Secondary -eq "skipped: agent session"
+        }
+    }
+}

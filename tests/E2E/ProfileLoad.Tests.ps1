@@ -105,6 +105,32 @@ Describe "Profile Loading - E2E Smoke Test" -Tag @('E2E', 'Smoke') {
         }
     }
 
+    Context "Agent and automation sessions" {
+        It "Skips prompt-heavy integrations without noisy startup errors" {
+            $output = & pwsh -NoProfile -Command {
+                param($profilePath)
+
+                $env:CODEX_CI = '1'
+                $env:TERM = 'dumb'
+                $WarningPreference = 'SilentlyContinue'
+                $InformationPreference = 'SilentlyContinue'
+                $VerbosePreference = 'SilentlyContinue'
+
+                try {
+                    . $profilePath
+                    Write-Output "SUCCESS"
+                } catch {
+                    Write-Error $_
+                    Write-Output "FAILED"
+                }
+            } -args $script:profileScript 2>&1
+
+            ($output | Where-Object { $_ -eq "SUCCESS" }) | Should -Not -BeNullOrEmpty
+            ($output | Where-Object { $_ -match 'Failed to write init script|Show-SystemStats|Export-Clixml' }) |
+                Should -BeNullOrEmpty -Because "agent sessions should avoid known noisy startup failures"
+        }
+    }
+
     Context "Performance" {
         It "Loads in under 10 seconds" {
             $elapsed = Measure-Command {

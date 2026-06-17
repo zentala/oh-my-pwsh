@@ -383,6 +383,38 @@ $global:OhMyPwsh_ShowFeedback = $true
 
 # Welcome Message - Show help tip on startup
 $global:OhMyPwsh_ShowWelcome = $true
+
+# Startup Integrations
+$global:OhMyPwsh_EnableStats = $true
+$global:OhMyPwsh_EnableTerminalIcons = $true
+$global:OhMyPwsh_EnablePrompt = $true
+$global:OhMyPwsh_EnableZoxide = $true
+$global:OhMyPwsh_EnableFnmAutoInit = $true
+```
+
+### Agent / CI-Safe Mode
+
+If you run PowerShell inside Codex, Claude Code, CI, or another constrained host,
+some startup integrations may be too noisy or try to write cache files in locked
+locations. These toggles keep startup deterministic:
+
+```powershell
+$global:OhMyPwsh_DisablePromptInAgentSessions = $true
+$global:OhMyPwsh_DisableFnmInAgentSessions = $true
+$global:OhMyPwsh_SilentStartupInAgentSessions = $true
+```
+
+Recommended automation profile:
+
+```powershell
+$global:OhMyPwsh_EnableStats = $false
+$global:OhMyPwsh_EnableTerminalIcons = $false
+$global:OhMyPwsh_EnablePrompt = $true
+$global:OhMyPwsh_EnableZoxide = $false
+$global:OhMyPwsh_EnableFnmAutoInit = $false
+$global:OhMyPwsh_DisablePromptInAgentSessions = $true
+$global:OhMyPwsh_DisableFnmInAgentSessions = $true
+$global:OhMyPwsh_SilentStartupInAgentSessions = $true
 ```
 
 ### Change Oh My Posh Theme
@@ -439,6 +471,21 @@ Install-EnhancedTools
 ```powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
+
+### Profile startup diagnostics
+
+Run:
+
+```powershell
+profile-doctor
+```
+
+It checks:
+- whether the session looks like an agent/automation host
+- whether WMI is available for `Show-SystemStats`
+- whether `fnm`, `oh-my-posh`, and `zoxide` are present
+- whether `Terminal-Icons` and `posh-git` are installed
+- whether key cache directories are writable
 
 ## 🧪 Testing
 
