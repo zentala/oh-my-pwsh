@@ -16,6 +16,10 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new()
 [Console]::InputEncoding  = [System.Text.UTF8Encoding]::new()
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
 
+function Test-OhMyPwshAgentSession {
+    return $env:CODEX_CI -eq '1' -or $env:TERM -eq 'dumb'
+}
+
 # ============================================
 # LOAD USER CONFIGURATION
 # ============================================
@@ -39,6 +43,31 @@ if (-not (Test-Path $ConfigPath)) {
 if (Test-Path $ConfigPath) {
     . $ConfigPath
 }
+
+if (-not (Get-Variable -Name OhMyPwsh_EnableStats -Scope Global -ErrorAction SilentlyContinue)) {
+    $global:OhMyPwsh_EnableStats = $true
+}
+if (-not (Get-Variable -Name OhMyPwsh_EnableTerminalIcons -Scope Global -ErrorAction SilentlyContinue)) {
+    $global:OhMyPwsh_EnableTerminalIcons = $true
+}
+if (-not (Get-Variable -Name OhMyPwsh_EnablePrompt -Scope Global -ErrorAction SilentlyContinue)) {
+    $global:OhMyPwsh_EnablePrompt = $true
+}
+if (-not (Get-Variable -Name OhMyPwsh_EnableZoxide -Scope Global -ErrorAction SilentlyContinue)) {
+    $global:OhMyPwsh_EnableZoxide = $true
+}
+if (-not (Get-Variable -Name OhMyPwsh_SilentStartupInAgentSessions -Scope Global -ErrorAction SilentlyContinue)) {
+    $global:OhMyPwsh_SilentStartupInAgentSessions = $false
+}
+if (-not (Get-Variable -Name OhMyPwsh_DisablePromptInAgentSessions -Scope Global -ErrorAction SilentlyContinue)) {
+    $global:OhMyPwsh_DisablePromptInAgentSessions = $true
+}
+
+$IsAgentSession = Test-OhMyPwshAgentSession
+$ShouldInitPrompt = $global:OhMyPwsh_EnablePrompt -and -not (
+    $global:OhMyPwsh_DisablePromptInAgentSessions -and $IsAgentSession
+)
+$ShouldShowStartupHints = -not ($global:OhMyPwsh_SilentStartupInAgentSessions -and $IsAgentSession)
 
 # ============================================
 # LOAD ICON SYSTEM - Must load BEFORE logger
@@ -74,12 +103,18 @@ $OhMyStatsLocations = @(
     "C:\code\oh-my-stats\pwsh\oh-my-stats.psd1"  # Legacy hardcoded location (backward compatibility)
 )
 
-foreach ($location in $OhMyStatsLocations) {
-    if (Test-Path $location) {
-        Import-Module $location -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-        if (Get-Module oh-my-stats) {
-            Show-SystemStats
-            break
+if ($global:OhMyPwsh_EnableStats) {
+    foreach ($location in $OhMyStatsLocations) {
+        if (Test-Path $location) {
+            Import-Module $location -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+            if (Get-Module oh-my-stats) {
+                try {
+                    Show-SystemStats -ErrorAction Stop
+                } catch {
+                    Write-Verbose "Show-SystemStats skipped: $($_.Exception.Message)"
+                }
+                break
+            }
         }
     }
 }
@@ -89,7 +124,13 @@ foreach ($location in $OhMyStatsLocations) {
 # ============================================
 
 # Terminal-Icons
-Import-Module Terminal-Icons -ErrorAction SilentlyContinue
+if ($global:OhMyPwsh_EnableTerminalIcons) {
+    try {
+        Import-Module Terminal-Icons -ErrorAction Stop
+    } catch {
+        Write-Verbose "Terminal-Icons skipped: $($_.Exception.Message)"
+    }
+}
 if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Terminal Icons" -Loaded ([bool](Get-Module Terminal-Icons)) }
 
 # posh-git
@@ -112,8 +153,20 @@ if ($global:_ProfileAvailability.Tools.fzf) {
 
 # zoxide - use cached availability to skip Get-Command
 if ($global:_ProfileAvailability.Tools.zoxide) {
-    Invoke-Expression (& { (zoxide init powershell | Out-String) })
-    if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "zoxide" -Loaded $true -Description "z command" }
+    if ($global:OhMyPwsh_EnableZoxide) {
+        try {
+            $zoxideInit = zoxide init powershell 2>$null | Out-String
+            if (-not [string]::IsNullOrWhiteSpace($zoxideInit)) {
+                Invoke-Expression $zoxideInit
+            }
+            if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "zoxide" -Loaded $true -Description "z command" }
+        } catch {
+            Write-Verbose "zoxide init skipped: $($_.Exception.Message)"
+            if ($_ProfileCacheFresh) { Write-SkippedStatus -Name "zoxide" -Reason "init failed" }
+        }
+    } elseif ($_ProfileCacheFresh) {
+        Write-SkippedStatus -Name "zoxide" -Reason "disabled in config"
+    }
 } else {
     if ($_ProfileCacheFresh) { Write-InstallHint -Tool "zoxide" -Description "smart directory jumping" -InstallCommand "winget install ajeetdsouza.zoxide" }
 }
@@ -143,16 +196,26 @@ if ($global:_ProfileAvailability.Tools.zoxide) {
 # OH MY POSH - Theme Engine
 # ============================================
 # Oh My Posh - use cached availability
-if ($global:_ProfileAvailability.Tools.'oh-my-posh') {
+if ($ShouldInitPrompt -and $global:_ProfileAvailability.Tools.'oh-my-posh') {
     $omp_config = "$ProfileRoot\themes\quick-term.omp.json"
-    if (Test-Path $omp_config) {
-        oh-my-posh init pwsh --config $omp_config 2>$null | Invoke-Expression
-    } else {
-        # Use oh-my-posh's default theme (don't try to fetch from GitHub)
-        oh-my-posh init pwsh 2>$null | Invoke-Expression
+    try {
+        if (Test-Path $omp_config) {
+            $ompInit = oh-my-posh init pwsh --config $omp_config 2>$null | Out-String
+        } else {
+            # Use oh-my-posh's default theme (don't try to fetch from GitHub)
+            $ompInit = oh-my-posh init pwsh 2>$null | Out-String
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($ompInit)) {
+            Invoke-Expression $ompInit
+        }
+    } catch {
+        Write-Verbose "oh-my-posh init skipped: $($_.Exception.Message)"
     }
     if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Oh My Posh" -Loaded $true }
-} else {
+} elseif ($_ProfileCacheFresh -and $global:OhMyPwsh_EnablePrompt -and $IsAgentSession) {
+    Write-SkippedStatus -Name "Oh My Posh" -Reason "agent session"
+} elseif ($ShouldInitPrompt) {
     if ($_ProfileCacheFresh) { Write-InstallHint -Tool "oh-my-posh" -Description "prompt theme" -InstallCommand "winget install JanDeDobbeleer.OhMyPosh" }
 }
 
@@ -167,7 +230,7 @@ if ($_ProfileCacheFresh) {
     }
 }
 
-if ($_ProfileCacheFresh) { Write-Host "" }  # Empty line after all modules
+if ($_ProfileCacheFresh -and $ShouldShowStartupHints) { Write-Host "" }  # Empty line after all modules
 
 # ============================================
 # WELCOME MESSAGE
@@ -177,7 +240,7 @@ if (-not (Get-Variable -Name OhMyPwsh_ShowWelcome -Scope Global -ErrorAction Sil
     $global:OhMyPwsh_ShowWelcome = $true
 }
 
-if ($global:OhMyPwsh_ShowWelcome) {
+if ($global:OhMyPwsh_ShowWelcome -and $ShouldShowStartupHints) {
     Write-Host ""
     Write-Host "  💡 Type " -NoNewline -ForegroundColor Cyan
     Write-Host "help" -NoNewline -ForegroundColor Yellow

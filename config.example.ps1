@@ -64,6 +64,30 @@ $global:OhMyPwsh_ShowWelcome = $true
 # ============================================
 # STARTUP DISPLAY
 # ============================================
+# Enable system stats banner at startup
+$global:OhMyPwsh_EnableStats = $true
+
+# Enable Terminal-Icons module
+$global:OhMyPwsh_EnableTerminalIcons = $true
+
+# Enable oh-my-posh prompt initialization
+$global:OhMyPwsh_EnablePrompt = $true
+
+# Enable zoxide initialization
+$global:OhMyPwsh_EnableZoxide = $true
+
+# Enable fnm auto-init in the outer PowerShell profile
+$global:OhMyPwsh_EnableFnmAutoInit = $true
+
+# Skip prompt-heavy integrations in agent/non-interactive sessions
+$global:OhMyPwsh_DisablePromptInAgentSessions = $true
+
+# Skip fnm auto-init in agent/non-interactive sessions
+$global:OhMyPwsh_DisableFnmInAgentSessions = $true
+
+# Keep startup output minimal in automation/agent sessions
+$global:OhMyPwsh_SilentStartupInAgentSessions = $false
+
 # Disable fastfetch at startup (set to $false to enable)
 $global:DisableFastfetch = $true
 

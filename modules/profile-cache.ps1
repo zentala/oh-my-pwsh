@@ -131,7 +131,13 @@ function Update-ProfileCache {
         Modules   = $modules
     }
 
-    $cache | ConvertTo-Json -Depth 3 | Set-Content $script:CachePath -Force
+    try {
+        $cache | ConvertTo-Json -Depth 3 | Set-Content $script:CachePath -Force -ErrorAction Stop
+    } catch {
+        if (-not $env:CODEX_CI) {
+            Write-Warning "Could not write profile cache: $($_.Exception.Message)"
+        }
+    }
     return $cache
 }
 
