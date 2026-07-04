@@ -61,6 +61,7 @@ function Update-ProfileCache {
         delta  = [bool](Get-Command delta -ErrorAction SilentlyContinue)
         fzf    = [bool](Get-Command fzf -ErrorAction SilentlyContinue)
         zoxide = [bool](Get-Command zoxide -ErrorAction SilentlyContinue)
+        fnm    = [bool](Get-Command fnm -ErrorAction SilentlyContinue)
         'oh-my-posh' = [bool](Get-Command oh-my-posh -ErrorAction SilentlyContinue)
         scoop  = [bool](Get-Command scoop -ErrorAction SilentlyContinue)
     }
@@ -127,6 +128,7 @@ function Show-ProfileStatus {
     $toolDescriptions = @{
         fzf    = @{ desc = "fuzzy finder"; cmd = "winget install fzf" }
         zoxide = @{ desc = "smart directory jumping"; cmd = "winget install ajeetdsouza.zoxide" }
+        fnm    = @{ desc = "per-project Node version"; cmd = "winget install Schniz.fnm" }
         'oh-my-posh' = @{ desc = "prompt theme"; cmd = "winget install JanDeDobbeleer.OhMyPosh" }
         bat    = @{ desc = "enhanced cat"; pkg = "bat" }
         eza    = @{ desc = "enhanced ls"; pkg = "eza" }
@@ -135,7 +137,7 @@ function Show-ProfileStatus {
         delta  = @{ desc = "enhanced git diff"; pkg = "delta" }
     }
 
-    foreach ($tool in @('fzf', 'zoxide', 'oh-my-posh', 'bat', 'eza', 'rg', 'fd', 'delta')) {
+    foreach ($tool in @('fzf', 'zoxide', 'fnm', 'oh-my-posh', 'bat', 'eza', 'rg', 'fd', 'delta')) {
         $available = $cache.Tools.$tool
         $info = $toolDescriptions[$tool]
         if ($available) {

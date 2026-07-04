@@ -118,6 +118,14 @@ if ($global:_ProfileAvailability.Tools.zoxide) {
     if ($_ProfileCacheFresh) { Write-InstallHint -Tool "zoxide" -Description "smart directory jumping" -InstallCommand "winget install ajeetdsouza.zoxide" }
 }
 
+# fnm - per-project Node version via .nvmrc/.node-version, per-shell (not global like nvm-windows)
+if ($global:_ProfileAvailability.Tools.fnm) {
+    fnm env --use-on-cd | Out-String | Invoke-Expression
+    if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "fnm" -Loaded $true -Description "auto Node per .nvmrc" }
+} else {
+    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "fnm" -Description "per-project Node version" -InstallCommand "winget install Schniz.fnm" }
+}
+
 # ============================================
 # LOAD CORE MODULES
 # ============================================
