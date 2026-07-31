@@ -2,6 +2,13 @@
 
 > PowerShell port of [designorant/ccblocks](https://github.com/designorant/ccblocks) (originally Bash for macOS/Linux)
 
+> **Status (2026-07-31):** `cc blocks` is **DEPRECATED / unused** — the `ccblocks`
+> scheduled task was disabled (no longer waking the PC 4×/day). Code kept for
+> reference; re-enable with `Enable-ScheduledTask -TaskName ccblocks`.
+> `cc plan` still works. Note: `cc plan` does not auto-remove its one-shot tasks
+> after they run — old `cc-plan-*` tasks may linger in Task Scheduler and are safe
+> to `Unregister-ScheduledTask`.
+
 ## What Problem Does This Solve?
 
 Claude Code (the CLI tool `claude`) uses **5-hour rolling usage blocks** as a rate-limiting mechanism. When you first send a message to Claude, a 5-hour timer starts. During that window, you get a quota of messages (45 for Pro, 225 for Max 5x, 900 for Max 20x). When the block expires, you need to start a new one.
