@@ -3,8 +3,8 @@
 # Depends on: cc/main.ps1 (loaded first)
 #
 # DEPRECATED / UNUSED (2026-07-31): no longer used. The 'ccblocks'
-# scheduled task was disabled. Kept for reference only; 'cc plan' still works.
-# Re-enable with: Enable-ScheduledTask -TaskName ccblocks  (or `cc blocks setup`).
+# scheduled task was removed. Kept for reference only; 'cc plan' still works.
+# Re-create the scheduler with: cc blocks setup
 # ============================================
 
 function _cc_blocks_dispatch {

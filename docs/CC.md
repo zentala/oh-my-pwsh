@@ -3,8 +3,8 @@
 > PowerShell port of [designorant/ccblocks](https://github.com/designorant/ccblocks) (originally Bash for macOS/Linux)
 
 > **Status (2026-07-31):** `cc blocks` is **DEPRECATED / unused** — the `ccblocks`
-> scheduled task was disabled (no longer waking the PC 4×/day). Code kept for
-> reference; re-enable with `Enable-ScheduledTask -TaskName ccblocks`.
+> scheduled task was removed (no longer waking the PC 4×/day). Code kept for
+> reference; re-create the scheduler with `cc blocks setup`.
 > `cc plan` still works. Note: `cc plan` does not auto-remove its one-shot tasks
 > after they run — old `cc-plan-*` tasks may linger in Task Scheduler and are safe
 > to `Unregister-ScheduledTask`.
