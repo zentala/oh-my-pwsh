@@ -82,6 +82,11 @@ function Show-OhMyPwshHelp {
             Write-Host "Enhanced with delta" -ForegroundColor Green
         }
         Write-Host ""
+
+        Write-Host "  AI:" -ForegroundColor White
+        Write-Host "    yolo [args]                " -NoNewline -ForegroundColor Cyan
+        Write-Host "claude --dangerously-skip-permissions" -ForegroundColor Gray
+        Write-Host ""
     }
 
     # Enhanced Tools Status
