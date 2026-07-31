@@ -80,3 +80,9 @@ function mkcd {
     New-Item -ItemType Directory -Path $dir -Force | Out-Null
     Set-Location $dir
 }
+
+# claude --dangerously-skip-permissions (skip all permission prompts)
+# Forwards any extra args, e.g. `yolo -r`, `yolo "prompt"`
+function yolo {
+    claude --dangerously-skip-permissions @args
+}
