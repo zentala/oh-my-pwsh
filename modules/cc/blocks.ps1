@@ -1,6 +1,10 @@
 # ============================================
 # cc blocks - Claude Code block scheduler subcommands
 # Depends on: cc/main.ps1 (loaded first)
+#
+# DEPRECATED / UNUSED (2026-07-31): no longer used. The 'ccblocks'
+# scheduled task was disabled. Kept for reference only; 'cc plan' still works.
+# Re-enable with: Enable-ScheduledTask -TaskName ccblocks  (or `cc blocks setup`).
 # ============================================
 
 function _cc_blocks_dispatch {
@@ -11,6 +15,10 @@ function _cc_blocks_dispatch {
         [switch]$Force,
         [int]$Last = 50
     )
+
+    if ($Command -in @('setup', 'resume', 'trigger')) {
+        _cc_warn 'cc blocks is deprecated / unused (disabled 2026-07-31). Continuing anyway.'
+    }
 
     switch ($Command) {
         'setup'     { _cc_blocks_setup }

@@ -174,7 +174,7 @@ function _cc_help {
     Write-Host '  cc — Claude Code CLI for Windows' -ForegroundColor Cyan
     Write-Host ''
     Write-Host '  Namespaces:' -ForegroundColor White
-    Write-Host '    cc blocks [cmd]     Block scheduler (auto-trigger 5h usage blocks)'
+    Write-Host '    cc blocks [cmd]     Block scheduler (auto-trigger 5h usage blocks) [DEPRECATED/unused]'
     Write-Host '    cc plan [cmd]       Scheduled Claude tasks (wake PC & run prompt)'
     Write-Host ''
     Write-Host '  Quick reference:' -ForegroundColor White
