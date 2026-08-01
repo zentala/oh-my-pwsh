@@ -98,3 +98,15 @@ function Write-ToolStatus {
         }
     }
 }
+
+function Write-SkippedStatus {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [string]$Reason
+    )
+
+    Write-ProfileStatus -Level info -Primary $Name -Secondary "skipped: $Reason"
+}

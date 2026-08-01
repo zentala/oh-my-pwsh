@@ -59,6 +59,7 @@ Set-Alias nano 'notepad' -ErrorAction SilentlyContinue
 # SHORTCUTS
 # ============================================
 
+Set-Alias c Clear-Host
 Set-Alias g git
 Set-Alias docker-compose 'docker compose'
 Set-Alias k kubectl -ErrorAction SilentlyContinue
