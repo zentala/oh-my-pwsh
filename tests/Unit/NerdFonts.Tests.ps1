@@ -211,9 +211,21 @@ Describe "Get-RecommendedNerdFonts" {
 }
 
 Describe "Set-WindowsTerminalFont" {
+    # Force Windows-Terminal detection without depending on the real env, and never
+    # let the function fall back to the real settings path - every test injects
+    # -SettingsPath pointing at a temp file (see task #014).
+    BeforeAll {
+        $script:savedWtSession = $env:WT_SESSION
+        $env:WT_SESSION = "test-session-id"
+        Mock Get-TerminalType { return "WindowsTerminal" }
+    }
+
+    AfterAll {
+        $env:WT_SESSION = $script:savedWtSession
+    }
+
     Context "When not running in Windows Terminal" {
         BeforeAll {
-            # Mock terminal detection
             Mock Get-TerminalType { return "LegacyConsole" }
         }
 
@@ -225,93 +237,87 @@ Describe "Set-WindowsTerminalFont" {
     }
 
     Context "When settings file does not exist" {
-        BeforeAll {
-            Mock Get-TerminalType { return "WindowsTerminal" }
-            Mock Test-Path { return $false }
-        }
-
         It "Returns false and shows error" {
-            $result = Set-WindowsTerminalFont -FontName "Test Font"
+            $missing = Join-Path ([System.IO.Path]::GetTempPath()) "nerdfont-missing-$([System.IO.Path]::GetRandomFileName()).json"
+
+            $result = Set-WindowsTerminalFont -FontName "Test Font" -Silent -SettingsPath $missing
 
             $result | Should -Be $false
         }
     }
 
     Context "When successfully setting font" {
-        BeforeAll {
-            Mock Get-TerminalType { return "WindowsTerminal" }
-
-            # Create temp settings file for testing
+        BeforeEach {
+            # Seed a realistic settings.json that already has a font.face - the common
+            # real-world update path.
             $script:tempSettings = [System.IO.Path]::GetTempFileName()
-            $testSettings = @{
+            @{
                 profiles = @{
-                    defaults = @{}
+                    defaults = @{ font = @{ face = "Consolas" } }
                     list = @()
                 }
-            } | ConvertTo-Json -Depth 10
-
-            $testSettings | Out-File $script:tempSettings -Encoding UTF8
-
-            # Mock paths
-            Mock Test-Path { return $true }
-            Mock Copy-Item { }
-            Mock Get-Content {
-                return Get-Content $script:tempSettings -Raw
-            } -ParameterFilter { $Path -like "*settings.json" }
-            Mock Set-Content { }
+            } | ConvertTo-Json -Depth 10 | Out-File $script:tempSettings -Encoding UTF8
         }
 
-        AfterAll {
-            if (Test-Path $script:tempSettings) {
-                Remove-Item $script:tempSettings -Force
-            }
+        AfterEach {
+            Remove-Item $script:tempSettings -Force -ErrorAction SilentlyContinue
+            Remove-Item "$script:tempSettings.backup-*" -Force -ErrorAction SilentlyContinue
         }
 
         It "Returns true on success" {
-            $result = Set-WindowsTerminalFont -FontName "CaskaydiaCove Nerd Font" -Silent
+            $result = Set-WindowsTerminalFont -FontName "CaskaydiaCove Nerd Font" -Silent -SettingsPath $script:tempSettings
 
             $result | Should -Be $true
         }
 
-        It "Creates backup before modifying" {
-            Set-WindowsTerminalFont -FontName "Test Font" -Silent
+        It "Writes the font face into the settings file" {
+            Set-WindowsTerminalFont -FontName "CaskaydiaCove Nerd Font" -Silent -SettingsPath $script:tempSettings | Out-Null
 
-            Should -Invoke Copy-Item -Times 1
+            $written = Get-Content $script:tempSettings -Raw | ConvertFrom-Json
+            $written.profiles.defaults.font.face | Should -Be "CaskaydiaCove Nerd Font"
         }
 
-        It "Reads existing settings" {
-            Set-WindowsTerminalFont -FontName "Test Font" -Silent
+        It "Creates a backup next to the settings file before modifying" {
+            Set-WindowsTerminalFont -FontName "Test Font" -Silent -SettingsPath $script:tempSettings | Out-Null
 
-            Should -Invoke Get-Content -Times 1
+            @(Get-ChildItem "$script:tempSettings.backup-*").Count | Should -BeGreaterThan 0
         }
 
-        It "Writes modified settings back" {
-            Set-WindowsTerminalFont -FontName "Test Font" -Silent
+        It "Does not touch the real Windows Terminal settings path" {
+            $realPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+            $before = @(Get-ChildItem "$realPath.backup-*" -ErrorAction SilentlyContinue).Count
 
-            Should -Invoke Set-Content -Times 1
+            Set-WindowsTerminalFont -FontName "Test Font" -Silent -SettingsPath $script:tempSettings | Out-Null
+
+            $after = @(Get-ChildItem "$realPath.backup-*" -ErrorAction SilentlyContinue).Count
+            $after | Should -Be $before
         }
     }
 
     Context "Error handling and rollback" {
-        BeforeAll {
-            Mock Get-TerminalType { return "WindowsTerminal" }
-            Mock Test-Path { return $true }
-            Mock Copy-Item { }
-            Mock Get-Content { throw "Read error" }
-            Mock Set-Content { }
+        BeforeEach {
+            # Seed invalid JSON so ConvertFrom-Json throws inside the function - no mocks.
+            $script:tempSettings = [System.IO.Path]::GetTempFileName()
+            "{ this is not valid json" | Out-File $script:tempSettings -Encoding UTF8
+        }
+
+        AfterEach {
+            Remove-Item $script:tempSettings -Force -ErrorAction SilentlyContinue
+            Remove-Item "$script:tempSettings.backup-*" -Force -ErrorAction SilentlyContinue
         }
 
         It "Returns false on error" {
-            $result = Set-WindowsTerminalFont -FontName "Test Font" -Silent
+            $result = Set-WindowsTerminalFont -FontName "Test Font" -Silent -SettingsPath $script:tempSettings
 
             $result | Should -Be $false
         }
 
-        It "Attempts to restore backup on error" {
-            Set-WindowsTerminalFont -FontName "Test Font" -Silent
+        It "Restores the original settings from backup on error" {
+            $original = Get-Content $script:tempSettings -Raw
 
-            # Should try to restore (second Copy-Item call)
-            Should -Invoke Copy-Item -Times 1
+            Set-WindowsTerminalFont -FontName "Test Font" -Silent -SettingsPath $script:tempSettings | Out-Null
+
+            Get-Content $script:tempSettings -Raw | Should -Be $original
         }
     }
 }

@@ -123,6 +123,11 @@ function Set-WindowsTerminalFont {
     .PARAMETER Silent
         Don't prompt for confirmation
 
+    .PARAMETER SettingsPath
+        Path to the Windows Terminal settings.json to modify. Defaults to the real
+        Windows Terminal LocalState path. Exists so tests can inject a temp file and
+        never touch the developer's real settings.
+
     .OUTPUTS
         [bool] True if successfully configured, False otherwise
 
@@ -134,7 +139,9 @@ function Set-WindowsTerminalFont {
         [Parameter(Mandatory = $true)]
         [string]$FontName,
 
-        [switch]$Silent
+        [switch]$Silent,
+
+        [string]$SettingsPath
     )
 
     # Check if running in Windows Terminal
@@ -146,23 +153,25 @@ function Set-WindowsTerminalFont {
         return $false
     }
 
-    # Find Windows Terminal settings file
-    $settingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    # Find Windows Terminal settings file (default to the real path when not injected)
+    if (-not $SettingsPath) {
+        $SettingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    }
 
-    if (-not (Test-Path $settingsPath)) {
-        Write-Host "✗ Windows Terminal settings not found at: $settingsPath" -ForegroundColor Red
+    if (-not (Test-Path $SettingsPath)) {
+        Write-Host "✗ Windows Terminal settings not found at: $SettingsPath" -ForegroundColor Red
         return $false
     }
 
     try {
         # Create backup
         $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-        $backupPath = "$settingsPath.backup-$timestamp"
-        Copy-Item $settingsPath $backupPath -Force
+        $backupPath = "$SettingsPath.backup-$timestamp"
+        Copy-Item $SettingsPath $backupPath -Force
         Write-Host "✓ Created backup: $backupPath" -ForegroundColor Green
 
         # Read and parse JSON
-        $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
+        $settings = Get-Content $SettingsPath -Raw | ConvertFrom-Json
 
         # Set font in profiles.defaults
         if (-not $settings.profiles) {
@@ -183,7 +192,7 @@ function Set-WindowsTerminalFont {
         }
 
         # Write back to file
-        $settings | ConvertTo-Json -Depth 32 | Set-Content $settingsPath -Encoding UTF8
+        $settings | ConvertTo-Json -Depth 32 | Set-Content $SettingsPath -Encoding UTF8
 
         Write-Host "✓ Font set to: $FontName" -ForegroundColor Green
         Write-Host "  Restart Windows Terminal for changes to take effect" -ForegroundColor Gray
@@ -194,7 +203,7 @@ function Set-WindowsTerminalFont {
         Write-Host "  Restoring backup..." -ForegroundColor Yellow
 
         if (Test-Path $backupPath) {
-            Copy-Item $backupPath $settingsPath -Force
+            Copy-Item $backupPath $SettingsPath -Force
             Write-Host "✓ Backup restored" -ForegroundColor Green
         }
 

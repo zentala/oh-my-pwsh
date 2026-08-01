@@ -1,9 +1,25 @@
 # 014 - NerdFont unit tests write to the real Windows Terminal settings.json
 
-**Status:** `backlog`
+**Status:** `done`
 **Priority:** P2 (test isolation — side effects on the dev machine)
 **Complexity:** Small (1-2 hours)
 **Type:** Test Quality
+
+---
+
+## Resolution (2026-08-01)
+
+Took the injectable-path option. `Set-WindowsTerminalFont` (`modules/nerd-fonts.ps1`)
+now has an optional `-SettingsPath` param that defaults to the real WT path only when
+not supplied. `Describe "Set-WindowsTerminalFont"` in `tests/Unit/NerdFonts.Tests.ps1`
+was rewritten to always pass a temp `-SettingsPath` and assert on that temp file — no
+`Copy-Item`/`Get-Content`/`Set-Content` mocks. A guard test asserts the real WT
+`settings.json.backup-*` count is unchanged. Verified: full unit run is 262/262 and
+creates no backup under the real `WindowsTerminal\...\LocalState\`.
+
+Side note found while fixing: when `profiles.defaults.font` does **not** already exist,
+the add-path writes `font` as a hashtable and `Add-Member face` never serializes, so
+`font.face` ends up null. Out of scope here (isolation only); worth a separate task.
 
 ---
 
