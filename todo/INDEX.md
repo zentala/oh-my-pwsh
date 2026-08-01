@@ -7,7 +7,6 @@
 
 ## Backlog
 
-- [014-nerdfont-tests-touch-real-settings.md](./backlog/014-nerdfont-tests-touch-real-settings.md) - `backlog` - P2 - NerdFont unit tests mutate the real Windows Terminal settings.json
 - [015-cc-plan-task-cleanup.md](./backlog/015-cc-plan-task-cleanup.md) - `backlog` - P3 - cc plan leaves dead one-shot tasks in Task Scheduler (+ cc-blocks name mismatch)
 - [009-interactive-installer.md](./backlog/009-interactive-installer.md) - `backlog` - P1 - Interactive installer with tool descriptions (UNBLOCKED by 010)
 - [011-teacher-mode-verbosity-levels.md](./backlog/011-teacher-mode-verbosity-levels.md) - `backlog` - P3 - Enhanced teacher mode with verbosity levels (silent, error, info, verbose)
@@ -16,6 +15,7 @@
 
 ## Done
 
+- [014-nerdfont-tests-touch-real-settings.md](./done/014-nerdfont-tests-touch-real-settings.md) - `done` - P2 - NerdFont unit tests isolated via injectable -SettingsPath (no real settings.json side effects)
 - [010-tui-research-demo.md](./done/010-tui-research-demo.md) - `done` - TUI library research (PwshSpectreConsole chosen) - **UNBLOCKS 009**
 - [005-testing-infrastructure.md](./done/005-testing-infrastructure.md) - `done` - Testing infrastructure (Pester, CI/CD, coverage, E2E smoke tests) - 4/5 phases (80%)
 - [001-logging-system.md](./done/001-logging-system.md) - `done` - Message segment composition for styled output
