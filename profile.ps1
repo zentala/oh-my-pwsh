@@ -184,6 +184,7 @@ if ($global:_ProfileAvailability.Tools.fnm) {
 # ============================================
 
 # Core modules
+. "$ProfileRoot\modules\proxy-guard.ps1"       # clear dead HTTP_PROXY/HTTPS_PROXY before anything uses them
 . "$ProfileRoot\modules\environment.ps1"
 . "$ProfileRoot\modules\psreadline.ps1"
 . "$ProfileRoot\modules\functions.ps1"
