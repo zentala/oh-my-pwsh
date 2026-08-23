@@ -151,34 +151,6 @@ if ($global:_ProfileAvailability.Tools.fzf) {
     if ($_ProfileCacheFresh) { Write-InstallHint -Tool "fzf" -Description "fuzzy finder" -InstallCommand "winget install fzf" }
 }
 
-# zoxide - use cached availability to skip Get-Command
-if ($global:_ProfileAvailability.Tools.zoxide) {
-    if ($global:OhMyPwsh_EnableZoxide) {
-        try {
-            $zoxideInit = zoxide init powershell 2>$null | Out-String
-            if (-not [string]::IsNullOrWhiteSpace($zoxideInit)) {
-                Invoke-Expression $zoxideInit
-            }
-            if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "zoxide" -Loaded $true -Description "z command" }
-        } catch {
-            Write-Verbose "zoxide init skipped: $($_.Exception.Message)"
-            if ($_ProfileCacheFresh) { Write-SkippedStatus -Name "zoxide" -Reason "init failed" }
-        }
-    } elseif ($_ProfileCacheFresh) {
-        Write-SkippedStatus -Name "zoxide" -Reason "disabled in config"
-    }
-} else {
-    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "zoxide" -Description "smart directory jumping" -InstallCommand "winget install ajeetdsouza.zoxide" }
-}
-
-# fnm - per-project Node version via .nvmrc/.node-version, per-shell (not global like nvm-windows)
-if ($global:_ProfileAvailability.Tools.fnm) {
-    fnm env --use-on-cd | Out-String | Invoke-Expression
-    if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "fnm" -Loaded $true -Description "auto Node per .nvmrc" }
-} else {
-    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "fnm" -Description "per-project Node version" -InstallCommand "winget install Schniz.fnm" }
-}
-
 # ============================================
 # LOAD CORE MODULES
 # ============================================
@@ -227,6 +199,34 @@ if ($ShouldInitPrompt -and $global:_ProfileAvailability.Tools.'oh-my-posh') {
     Write-SkippedStatus -Name "Oh My Posh" -Reason "agent session"
 } elseif ($ShouldInitPrompt) {
     if ($_ProfileCacheFresh) { Write-InstallHint -Tool "oh-my-posh" -Description "prompt theme" -InstallCommand "winget install JanDeDobbeleer.OhMyPosh" }
+}
+
+# zoxide - MUST load AFTER oh-my-posh (both wrap `prompt`; outermost hook wins, so zoxide needs to wrap oh-my-posh)
+if ($global:_ProfileAvailability.Tools.zoxide) {
+    if ($global:OhMyPwsh_EnableZoxide) {
+        try {
+            $zoxideInit = zoxide init powershell 2>$null | Out-String
+            if (-not [string]::IsNullOrWhiteSpace($zoxideInit)) {
+                Invoke-Expression $zoxideInit
+            }
+            if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "zoxide" -Loaded $true -Description "z command" }
+        } catch {
+            Write-Verbose "zoxide init skipped: $($_.Exception.Message)"
+            if ($_ProfileCacheFresh) { Write-SkippedStatus -Name "zoxide" -Reason "init failed" }
+        }
+    } elseif ($_ProfileCacheFresh) {
+        Write-SkippedStatus -Name "zoxide" -Reason "disabled in config"
+    }
+} else {
+    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "zoxide" -Description "smart directory jumping" -InstallCommand "winget install ajeetdsouza.zoxide" }
+}
+
+# fnm - per-project Node version via .nvmrc/.node-version, per-shell (also hooks prompt/cd, so after oh-my-posh)
+if ($global:_ProfileAvailability.Tools.fnm) {
+    fnm env --use-on-cd | Out-String | Invoke-Expression
+    if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "fnm" -Loaded $true -Description "auto Node per .nvmrc" }
+} else {
+    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "fnm" -Description "per-project Node version" -InstallCommand "winget install Schniz.fnm" }
 }
 
 # PSReadLine
