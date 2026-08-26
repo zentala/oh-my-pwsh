@@ -373,6 +373,6 @@ function _cc_plan_help {
     Write-Host '    - Plans run in the directory where you created them'
     Write-Host '    - PC wakes from sleep (WakeToRun) to execute plans'
     Write-Host '    - Default mode: read-only (claude -p). Use --auto-edit for file changes'
-    Write-Host '    - Output saved to: %APPDATA%\ccblocks\plans\'
+    Write-Host '    - Output saved to: %APPDATA%\cc\plans\'
     Write-Host ''
 }

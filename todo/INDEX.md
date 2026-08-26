@@ -7,7 +7,7 @@
 
 ## Backlog
 
-- [015-cc-plan-task-cleanup.md](./backlog/015-cc-plan-task-cleanup.md) - `backlog` - P3 - cc plan leaves dead one-shot tasks in Task Scheduler (+ cc-blocks name mismatch)
+- [015-cc-plan-task-cleanup.md](./backlog/015-cc-plan-task-cleanup.md) - `backlog` - P3 - cc plan leaves dead one-shot tasks in Task Scheduler
 - [016-nerdfont-add-font-node-not-serialized.md](./backlog/016-nerdfont-add-font-node-not-serialized.md) - `backlog` - P3 - Set-WindowsTerminalFont loses font.face when settings.json has no font node
 - [009-interactive-installer.md](./backlog/009-interactive-installer.md) - `backlog` - P1 - Interactive installer with tool descriptions (UNBLOCKED by 010)
 - [011-teacher-mode-verbosity-levels.md](./backlog/011-teacher-mode-verbosity-levels.md) - `backlog` - P3 - Enhanced teacher mode with verbosity levels (silent, error, info, verbose)
