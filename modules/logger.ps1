@@ -110,3 +110,60 @@ function Write-SkippedStatus {
 
     Write-ProfileStatus -Level info -Primary $Name -Secondary "skipped: $Reason"
 }
+
+
+# ============================================
+# MISSING TOOLS - one line, not one per tool
+# ============================================
+# A separate "install X" hint per missing tool pushed the module list off screen on a
+# fresh machine. Modules register what is missing while they load; the profile prints a
+# single line at the end, ending in a paste-ready winget command.
+#
+# IDs verified with `winget show --id <id> --exact` on 2026-08-26 - do not guess them,
+# `winget install fzf` happens to work as a query but `junegunn.fzf` is the actual ID.
+# scoop is NOT installed on this machine, so winget is the only offer worth making.
+$script:WingetIds = @{
+    fzf          = 'junegunn.fzf'
+    zoxide       = 'ajeetdsouza.zoxide'
+    fnm          = 'Schniz.fnm'
+    'oh-my-posh' = 'JanDeDobbeleer.OhMyPosh'
+    bat          = 'sharkdp.bat'
+    eza          = 'eza-community.eza'
+    rg           = 'BurntSushi.ripgrep.MSVC'
+    fd           = 'sharkdp.fd'
+    delta        = 'dandavison.delta'
+}
+
+$global:_ProfileMissingTools = [System.Collections.Generic.List[string]]::new()
+
+function Register-MissingTool {
+    <#
+    .SYNOPSIS
+        Records a tool as missing, to be reported once at the end of profile load.
+    #>
+    param([Parameter(Mandatory)][string]$Tool)
+
+    if (-not $global:_ProfileMissingTools.Contains($Tool)) {
+        $global:_ProfileMissingTools.Add($Tool)
+    }
+}
+
+function Write-MissingToolsHint {
+    <#
+    .SYNOPSIS
+        Prints one line naming every missing tool plus a single winget command installing
+        all of them. Prints nothing when everything is present.
+    #>
+    if ($global:_ProfileMissingTools.Count -eq 0) { return }
+
+    $ids = foreach ($tool in $global:_ProfileMissingTools) {
+        if ($script:WingetIds.ContainsKey($tool)) { $script:WingetIds[$tool] } else { $tool }
+    }
+
+    Write-StatusMessage -Role "warning" -Message @(
+        @{Text = "missing: "; Color = "White" }
+        @{Text = ($global:_ProfileMissingTools -join ', '); Color = "Yellow" }
+        @{Text = "  ->  winget install "; Color = "DarkGray" }
+        @{Text = ($ids -join ' '); Color = "DarkGray" }
+    )
+}
