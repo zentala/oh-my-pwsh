@@ -30,7 +30,8 @@ if (_HasTool bat) {
     }
     if ($_showStatus) { Write-ToolStatus -Name "bat" -Installed $true -Description "enhanced cat" }
 } else {
-    if ($_showStatus) { Write-ToolStatus -Name "bat" -Installed $false -Description "improved cat" -ScoopPackage "bat" }
+    if ($_showStatus) { Write-ToolStatus -Name "bat" -Installed $false -Description "improved cat" -ScoopPackage "bat" }
+    Register-MissingTool -Tool "bat"
     Set-Alias cat Get-Content
 }
 
@@ -63,7 +64,8 @@ if (_HasTool eza) {
 
     if ($_showStatus) { Write-ToolStatus -Name "eza" -Installed $true -Description "enhanced ls" }
 } else {
-    if ($_showStatus) { Write-ToolStatus -Name "eza" -Installed $false -Description "modern ls" -ScoopPackage "eza" }
+    if ($_showStatus) { Write-ToolStatus -Name "eza" -Installed $false -Description "modern ls" -ScoopPackage "eza" }
+    Register-MissingTool -Tool "eza"
 }
 
 # ============================================
@@ -80,7 +82,8 @@ if (_HasTool rg) {
 
     if ($_showStatus) { Write-ToolStatus -Name "ripgrep" -Installed $true -Description "enhanced grep" }
 } else {
-    if ($_showStatus) { Write-ToolStatus -Name "ripgrep" -Installed $false -Description "faster grep" -ScoopPackage "ripgrep" }
+    if ($_showStatus) { Write-ToolStatus -Name "ripgrep" -Installed $false -Description "faster grep" -ScoopPackage "ripgrep" }
+    Register-MissingTool -Tool "rg"
     function grep {
         param([Parameter(ValueFromRemainingArguments)]$args)
         Select-String @args
@@ -101,7 +104,8 @@ if (_HasTool fd) {
 
     if ($_showStatus) { Write-ToolStatus -Name "fd" -Installed $true -Description "enhanced find" }
 } else {
-    if ($_showStatus) { Write-ToolStatus -Name "fd" -Installed $false -Description "faster find" -ScoopPackage "fd" }
+    if ($_showStatus) { Write-ToolStatus -Name "fd" -Installed $false -Description "faster find" -ScoopPackage "fd" }
+    Register-MissingTool -Tool "fd"
     function find {
         param([Parameter(ValueFromRemainingArguments)]$args)
         if ($args.Count -gt 0) {
@@ -129,7 +133,8 @@ if (_HasTool delta) {
 
     if ($_showStatus) { Write-ToolStatus -Name "delta" -Installed $true -Description "enhanced git diff" }
 } else {
-    if ($_showStatus) { Write-ToolStatus -Name "delta" -Installed $false -Description "better git diff" -ScoopPackage "delta" }
+    if ($_showStatus) { Write-ToolStatus -Name "delta" -Installed $false -Description "better git diff" -ScoopPackage "delta" }
+    Register-MissingTool -Tool "delta"
 }
 
 # ============================================

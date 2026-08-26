@@ -140,8 +140,15 @@ function Register-MissingTool {
     <#
     .SYNOPSIS
         Records a tool as missing, to be reported once at the end of profile load.
+    .DESCRIPTION
+        Does nothing while the tool cache holds no measurements. Callers read availability
+        from that cache, so on a first run every tool would look absent and the shell would
+        open telling the user to install nine things that are already installed. Unknown is
+        not the same as missing.
     #>
     param([Parameter(Mandatory)][string]$Tool)
+
+    if (-not $global:_ProfileAvailability -or -not $global:_ProfileAvailability.Timestamp) { return }
 
     if (-not $global:_ProfileMissingTools.Contains($Tool)) {
         $global:_ProfileMissingTools.Add($Tool)

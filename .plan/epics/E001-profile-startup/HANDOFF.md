@@ -311,3 +311,22 @@ z `rules/workflows.md` — nie trzeba dzielić na równoległych subagentów).
   przemianowane na GitHub, ta kopia to stary klon sprzed zmiany nazwy), i
   żaden profil go nie dot-sourcuje. Nie usunąłem jej — to nie było w
   zakresie zadania, tylko decyzja "którą edytować".
+
+---
+
+## Status wykonania (2026-08-26)
+
+Wszystkie cztery zadania wdrożone. **Kryterium `< 800 ms` nie jest
+spełnione** — profil kosztuje ~990 ms w najlepszym przebiegu (~1,3–1,6 s
+przy 97% RAM i 600 procesach), bo prompt `oh-my-posh` i baner
+`oh-my-stats` to razem ~750 ms i oba są widoczne dla użytkownika.
+Pełny rozbiór, pomiary i GAPS:
+[`.plan/reports/2026-08-26-start-profilu-wynik.md`](../../reports/2026-08-26-start-profilu-wynik.md).
+
+- [x] T1 — `Get-ScheduledTask` poza ścieżką krytyczną (`ccblocks` usunięty
+      całkiem na polecenie Pawła, commit `1542ce9`)
+- [x] T2 — `Show-SystemStats`: 1458–1763 ms → ~280 ms (oh-my-stats `4bd372a`
+      + cięcia dysk/procesy/próbka CPU)
+- [x] T3 — jedna linia braków z gotowym `winget install …`
+- [x] T4 — cache odświeża się w tle, trzy stany (`cached`/`refreshing`/`uncached`)
+- [x] (poza planem) cache skryptu init `oh-my-posh` — ~350 ms na start

@@ -10,21 +10,23 @@
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+$lock = Join-Path $env:USERPROFILE '.oh-my-pwsh-cache.lock'
 
 try {
-    . "$root\settings\icons.ps1"
-    . "$root\modules\status-output.ps1"
-    . "$root\modules\logger.ps1"
-    . "$root\modules
-erd-fonts.ps1"
-    . "$root\modules\profile-cache.ps1"
+    . (Join-Path $root 'settings/icons.ps1')
+    . (Join-Path $root 'modules/status-output.ps1')
+    . (Join-Path $root 'modules/logger.ps1')
+    . (Join-Path $root 'modules/nerd-fonts.ps1')
+    . (Join-Path $root 'modules/profile-cache.ps1')
 
     $result = Update-ProfileCache
+    Remove-Item $lock -Force -ErrorAction SilentlyContinue
     if (-not $result.Written) { exit 1 }
     exit 0
 } catch {
-    # The caller cannot see this process, so leave a trace on disk instead of dying quietly.
+    # Nobody is watching this process, so leave a trace on disk instead of dying quietly.
     $log = Join-Path $env:USERPROFILE '.oh-my-pwsh-cache.error'
     "$(Get-Date -Format o)  $($_.Exception.Message)" | Set-Content $log -Force -ErrorAction SilentlyContinue
+    Remove-Item $lock -Force -ErrorAction SilentlyContinue
     exit 1
 }
