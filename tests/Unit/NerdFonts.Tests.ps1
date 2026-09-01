@@ -115,8 +115,8 @@ Describe "Test-NerdFontInstalled" {
 
             $result | Should -Not -BeNullOrEmpty
             $result.Installed | Should -BeOfType [bool]
-            # Fonts can be a string (single font) or array (multiple fonts)
-            $result.Fonts | Should -Not -BeNullOrEmpty -Because "Should have Fonts property"
+            # Fonts may legitimately be empty on a clean developer/CI host.
+            $result.PSObject.Properties.Name | Should -Contain 'Fonts'
             $result.Count | Should -BeOfType [int]
         }
 
@@ -324,10 +324,6 @@ Describe "Set-WindowsTerminalFont" {
 
 Describe "Install-NerdFonts Integration" {
     Context "When scoop is not available" {
-        BeforeAll {
-            Mock Get-Command { return $null } -ParameterFilter { $Name -eq "scoop" }
-        }
-
         It "Shows error and manual installation instructions" {
             # This would need interactive testing or further mocking
             # For now, we just verify the function exists and is callable

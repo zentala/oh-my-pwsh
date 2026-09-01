@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last Updated:** 2025-10-19
+> **Last Updated:** 2026-09-02
 > **Status:** ✅ STABLE - Production Ready
 > **Current Goal:** Task 009 - Interactive Installer (UNBLOCKED)
 > **Success:** Testing infrastructure + TUI library chosen (PwshSpectreConsole)
@@ -12,13 +12,14 @@
 ## 🎯 Next Steps (Task Queue)
 
 **Current Priority:**
-1. **Task 009** - Interactive Installer - `backlog` → `active` - **UNBLOCKED** ✅
-2. Task 006 - Contributors Documentation - `active` - P2
-3. Task 007 - Smart Editor Suggestions - `backlog` - P3
-4. Task 011 - Teacher Mode with Verbosity - `backlog` - P3
+0. **Task 009** - Interactive Installer - `backlog` → `active` - **UNBLOCKED** ✅
+1. Task 006 - Contributors Documentation - `active` - P2
+2. Task 007 - Smart Editor Suggestions - `backlog` - P3
+3. Task 011 - Teacher Mode with Verbosity - `backlog` - P3
 
 **Recently Completed:**
 - ✅ Task 010 - TUI Research & Demo (PwshSpectreConsole chosen, demo working)
+- ✅ Tasks 017–024 - Power tools test coverage, safety doubles, cancellation regression, and Pester runner isolation
 
 See [todo/INDEX.md](./todo/INDEX.md) for complete task list.
 
@@ -29,9 +30,9 @@ See [todo/INDEX.md](./todo/INDEX.md) for complete task list.
 ### Testing Infrastructure - FULLY OPERATIONAL ✅
 
 **Statistics:**
-- 180 passing tests (0 failures) - **+4 E2E smoke tests**
-- Unit: 164 tests | Integration: 12 tests | **E2E: 4 tests**
-- 36.69% overall coverage (182/496 lines)
+- 339 passing tests (0 failures) + 1 skipped optional Spectre test
+- Unit: 292 tests | Integration: 42 tests | **E2E: 5 tests**
+- 40.36% command coverage overall; `power-tools.ps1`: 75.1% lines
 - 100% coverage on critical modules (logger, status-output)
 - CI/CD on GitHub Actions (Windows + Ubuntu)
 - Test execution: ~11s (unit), ~19s (E2E)
@@ -93,6 +94,7 @@ See [todo/INDEX.md](./todo/INDEX.md) for complete task list.
 - ❌ PSScriptAnalyzer integration
 
 ### Test Coverage Gaps
+- `modules/power-tools.ps1` - covered at 75.1%; broader profile coverage remains below the aspirational 75% overall target
 - `profile.ps1` - No E2E tests (56 lines untested)
 - `help-system.ps1` - Not tested (utility module)
 - Edge cases (corrupted tool installations, permission errors)
@@ -106,13 +108,13 @@ See [todo/INDEX.md](./todo/INDEX.md) for complete task list.
 
 ## 🐛 Known Issues (Non-Blocking)
 
-### 1. Pester CodeCoverage Warning
+### 1. Pester CodeCoverage Warning — Resolved
 ```
 Cannot convert value "Pester.CodeCoverage" to type "System.Management.Automation.SwitchParameter"
 ```
-**Impact:** Cosmetic only - coverage still works
-**Status:** Known Pester bug, does not affect functionality
-**Fix:** Ignore or upgrade Pester when fixed
+**Impact:** The runner previously failed after successful tests because its
+`$Coverage` switch variable was overwritten by the coverage result object.
+**Status:** Resolved in `scripts/Invoke-Tests.ps1` by using a distinct report variable.
 
 ### 2. Emoji Rendering in Some Terminals
 - Some older terminals don't render Unicode icons properly

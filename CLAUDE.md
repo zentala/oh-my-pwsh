@@ -609,6 +609,10 @@ Currently using **Unicode only** (Nerd Fonts suspended due to rendering issues):
 
 ## Completed Tasks
 
+- [Power tools test coverage](./todo/HANDOFF-2026-09-01-power-tools-tests.md) - Tasks 017–024 complete; 339/339 executed tests pass, with one optional Spectre test skipped when the dependency is absent.
+
+## Completed Tasks
+
 - [001-logging-system.md](./todo/done/001-logging-system.md) - Message segment composition for styled output
 - [004-write-status-message.md](./todo/done/004-write-status-message.md) - Colored status output (Option B)
 - [002-icon-fallback-system.md](./todo/done/002-icon-fallback-system.md) - Icon system (Unicode working, NF experimental)

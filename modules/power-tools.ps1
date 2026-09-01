@@ -10,7 +10,7 @@
 #   power <action> now          Execute immediately (with confirm)
 #   power status                List scheduled actions
 #   power cancel                Cancel all scheduled actions
-#   power cancel <id>           Cancel one (id from `power status`)
+#   power cancel <id|action>    Cancel one action by id or action type
 #   power help                  Show help
 #
 # Action aliases:
@@ -41,7 +41,7 @@ function Resolve-PowerAction {
         '^(sleep|slp|s|nap)$'         { return 'sleep' }
         '^(shutdown|off|shut|down)$'  { return 'shutdown' }
         '^(restart|reboot|rb|r)$'     { return 'restart' }
-        '^(cancel|unpower|clear|abort)$' { return 'cancel' }
+        '^(cancel|unpower|clear|abort|c)$' { return 'cancel' }
         '^(status|list|ls)$'          { return 'status' }
         '^(help|--help|-h|\?)$'       { return 'help' }
         '^(menu)$'                    { return 'menu' }
@@ -93,6 +93,24 @@ function Get-PowerCommand {
     }
 }
 
+function Invoke-PowerProcess {
+    <#
+    .SYNOPSIS
+    Invoke a native power command through a testable process boundary.
+
+    .DESCRIPTION
+    Keeping native process invocation in one function lets tests replace this
+    boundary and prove that no real power operation is attempted.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$FilePath,
+        [string[]]$ArgumentList = @()
+    )
+
+    & $FilePath @ArgumentList
+    return $LASTEXITCODE
+}
+
 function Test-GsudoAvailable {
     return [bool](Get-Command gsudo -ErrorAction SilentlyContinue)
 }
@@ -105,13 +123,13 @@ function Invoke-WithElevation {
     #>
     param([string]$Command)
 
-    $null = cmd.exe /c "$Command" 2>&1
-    if ($LASTEXITCODE -eq 0) { return $true }
+    $exitCode = Invoke-PowerProcess -FilePath 'cmd.exe' -ArgumentList @('/c', $Command) 2>&1
+    if ($exitCode -eq 0) { return $true }
 
     if (Test-GsudoAvailable) {
         Write-StatusMessage -Role "info" -Message "Elevation required - retrying via gsudo"
-        $null = gsudo cmd.exe /c "$Command" 2>&1
-        return ($LASTEXITCODE -eq 0)
+        $exitCode = Invoke-PowerProcess -FilePath 'gsudo' -ArgumentList @('cmd.exe', '/c', $Command) 2>&1
+        return ($exitCode -eq 0)
     }
 
     Write-StatusMessage -Role "error" -Message "Command failed and gsudo not available - install with: scoop install gsudo"
@@ -128,7 +146,10 @@ function Get-PowerSchedule {
     Returns scheduled power actions as objects: Id, Name, Action, NextRun, MinutesLeft.
     Automatically cleans up stale tasks (already executed or missing NextRunTime).
     #>
-    $tasks = @(Get-ScheduledTask -TaskName "$($script:PowerTaskPrefix)-*" -ErrorAction SilentlyContinue)
+    $tasks = @(
+        Get-ScheduledTask -TaskName "$($script:PowerTaskPrefix)-*" -ErrorAction SilentlyContinue |
+            Where-Object { $_.TaskName -like "$($script:PowerTaskPrefix)-*" }
+    )
     if (-not $tasks -or $tasks.Count -eq 0) { return @() }
 
     $now = Get-Date
@@ -136,7 +157,7 @@ function Get-PowerSchedule {
     $i = 0
 
     $sorted = $tasks | ForEach-Object {
-        $info = Get-ScheduledTaskInfo $_
+        $info = Get-ScheduledTaskInfo -TaskName $_.TaskName
         [PSCustomObject]@{ Task = $_; Info = $info }
     } | Sort-Object { $_.Info.NextRunTime }
 
@@ -215,7 +236,7 @@ function New-PowerSchedule {
 
 function Remove-PowerSchedule {
     param(
-        [string]$Target  # task name, numeric id, or 'all' / $null
+        [string]$Target  # task name, numeric id, action, or 'all' / $null
     )
 
     $schedule = Get-PowerSchedule
@@ -244,7 +265,23 @@ function Remove-PowerSchedule {
         }
     }
     else {
-        $toRemove = @($schedule | Where-Object { $_.Name -eq $Target })
+        $actionTarget = Resolve-PowerAction $Target
+        if ($actionTarget -in @('hibernate', 'sleep', 'shutdown', 'restart')) {
+            $toRemove = @($schedule | Where-Object { $_.Action -eq $actionTarget })
+            if ($toRemove.Count -eq 0) {
+                Write-StatusMessage -Role "warning" -Message "No scheduled $actionTarget action"
+                return
+            }
+            if ($toRemove.Count -gt 1) {
+                if (-not (Confirm-PowerAction -Message "Cancel all $($toRemove.Count) scheduled $actionTarget actions?")) {
+                    Write-StatusMessage -Role "info" -Message "Cancelled"
+                    return
+                }
+            }
+        }
+        else {
+            $toRemove = @($schedule | Where-Object { $_.Name -eq $Target })
+        }
         if ($toRemove.Count -eq 0) {
             Write-StatusMessage -Role "warning" -Message "No task named $Target"
             return
@@ -318,7 +355,7 @@ function Show-PowerHelp {
     Write-Host "    power <action> <time>        Schedule" -ForegroundColor Gray
     Write-Host "    power <action> now           Execute immediately" -ForegroundColor Gray
     Write-Host "    power status                 List scheduled" -ForegroundColor Gray
-    Write-Host "    power cancel [id|all]        Cancel scheduled" -ForegroundColor Gray
+    Write-Host "    power cancel [id|action|all] Cancel scheduled" -ForegroundColor Gray
     Write-Host "    power help                   This help" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  ACTIONS" -ForegroundColor White
@@ -340,6 +377,7 @@ function Show-PowerHelp {
     Write-Host "    power off 23:30              shutdown at 23:30" -ForegroundColor DarkGray
     Write-Host "    power slp 1h30m              sleep in 1h30m" -ForegroundColor DarkGray
     Write-Host "    power cancel 2               cancel scheduled action #2" -ForegroundColor DarkGray
+    Write-Host "    power cancel h               cancel scheduled hibernation" -ForegroundColor DarkGray
     Write-Host ""
 }
 
@@ -467,7 +505,7 @@ function Invoke-Power {
         }
     }
 
-    # cancel <id>
+    # cancel <id|action>
     if ((Resolve-PowerAction $tokens[0]) -eq 'cancel') {
         Remove-PowerSchedule -Target $tokens[1]
         return

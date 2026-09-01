@@ -16,6 +16,15 @@
 
 ## Done
 
+- [017-power-tools-test-coverage-plan.md](./017-power-tools-test-coverage-plan.md) - `done` - Power tools test coverage plan and execution record
+- [017-power-tools-unit-tests.md](./017-power-tools-unit-tests.md) - `done` - Pure helper and safety-boundary tests
+- [018-power-tools-schedule-tests.md](./018-power-tools-schedule-tests.md) - `done` - Task Scheduler query and create-command tests
+- [019-power-tools-cancel-tests.md](./019-power-tools-cancel-tests.md) - `done` - Cancellation and action-name regression tests
+- [020-power-tools-dispatcher-tests.md](./020-power-tools-dispatcher-tests.md) - `done` - Public dispatcher routing tests
+- [021-power-tools-ui-tests.md](./021-power-tools-ui-tests.md) - `done` - Spectre and fallback menu behavior tests
+- [022-power-tools-safe-test-doubles.md](./022-power-tools-safe-test-doubles.md) - `done` - Safe external-operation test doubles
+- [023-power-tools-test-runner-registry.md](./023-power-tools-test-runner-registry.md) - `done` - Pester registry isolation and runner fixes
+- [024-power-tools-regression-validation.md](./024-power-tools-regression-validation.md) - `done` - Full regression, coverage, and validation pass
 - [014-nerdfont-tests-touch-real-settings.md](./done/014-nerdfont-tests-touch-real-settings.md) - `done` - P2 - NerdFont unit tests isolated via injectable -SettingsPath (no real settings.json side effects)
 - [010-tui-research-demo.md](./done/010-tui-research-demo.md) - `done` - TUI library research (PwshSpectreConsole chosen) - **UNBLOCKS 009**
 - [005-testing-infrastructure.md](./done/005-testing-infrastructure.md) - `done` - Testing infrastructure (Pester, CI/CD, coverage, E2E smoke tests) - 4/5 phases (80%)

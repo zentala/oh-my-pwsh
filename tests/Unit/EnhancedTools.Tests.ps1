@@ -139,7 +139,7 @@ Describe "Install-EnhancedTools function" {
     }
 
     It "Function exists" {
-        Get-Command Install-EnhancedTools -CommandType Function | Should -Not -BeNullOrEmpty
+        Test-Path Function:\Install-EnhancedTools | Should -BeTrue
     }
 
     Context "When scoop is not installed" {

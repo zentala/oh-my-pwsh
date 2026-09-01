@@ -50,6 +50,11 @@ Describe "TUI Demo Script" -Tag @('Unit', 'Demo') {
 
     Context "Quick mode execution" {
         It "Runs without errors in Quick mode" {
+            if (-not (Get-Module -ListAvailable -Name PwshSpectreConsole)) {
+                Set-ItResult -Skipped -Because "PwshSpectreConsole is an optional dependency"
+                return
+            }
+
             # Quick mode should not require interactive prompts
             {
                 $output = & pwsh -NoProfile -Command {

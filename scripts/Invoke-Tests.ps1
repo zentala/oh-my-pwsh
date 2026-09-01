@@ -84,17 +84,37 @@ $projectRoot = Split-Path $PSScriptRoot -Parent
 # Configure Pester
 $config = [PesterConfiguration]::Default
 
-# Set test path based on type
-switch ($Type) {
-    'Unit' { $config.Run.Path = Join-Path $projectRoot "tests/Unit" }
-    'Integration' { $config.Run.Path = Join-Path $projectRoot "tests/Integration" }
-    'E2E' { $config.Run.Path = Join-Path $projectRoot "tests/E2E" }
-    'All' { $config.Run.Path = Join-Path $projectRoot "tests" }
+# The power/profile tests do not use Pester's registry drive. Pester 6 enables
+# TestRegistry by default on Windows, which requires write access to HKCU and
+# makes otherwise isolated tests fail before their assertions run. Keep the
+# opt-in registry fixture available for dedicated tests, but disable it for
+# this repository's normal suite.
+if ($config.PSObject.Properties.Name -contains 'TestRegistry') {
+    $config.TestRegistry.Enabled = $false
 }
+
+# Set test path based on type
+$testRoot = Join-Path $projectRoot "tests"
+switch ($Type) {
+    'Unit' { $testRoot = Join-Path $projectRoot "tests/Unit" }
+    'Integration' { $testRoot = Join-Path $projectRoot "tests/Integration" }
+    'E2E' { $testRoot = Join-Path $projectRoot "tests/E2E" }
+}
+$config.Run.Path = $testRoot
 
 # Filter
 if ($Filter -ne "*") {
-    $config.Filter.FullName = "*$Filter*"
+    # A file-name filter is more useful for this runner than Pester's full
+    # test-name filter when the caller asks for a focused module suite.
+    $matchingTestFiles = @(
+        Get-ChildItem -Path $testRoot -Recurse -Filter "*.Tests.ps1" |
+            Where-Object { -not $_.PSIsContainer -and $_.BaseName -like "*$Filter*" }
+    )
+    if ($matchingTestFiles.Count -gt 0) {
+        $config.Run.Path = @($matchingTestFiles.FullName)
+    } else {
+        $config.Filter.FullName = "*$Filter*"
+    }
 }
 
 # Output configuration
@@ -234,9 +254,9 @@ Write-Host "Skipped: $($result.SkippedCount)" -ForegroundColor Yellow
 # Coverage summary
 if ($Coverage -and -not $Fast) {
     if ($result.CodeCoverage) {
-        $coverage = $result.CodeCoverage
-        $coveredCommands = $coverage.CommandsExecutedCount
-        $totalCommands = $coverage.CommandsAnalyzedCount
+        $coverageReport = $result.CodeCoverage
+        $coveredCommands = $coverageReport.CommandsExecutedCount
+        $totalCommands = $coverageReport.CommandsAnalyzedCount
 
         if ($totalCommands -gt 0) {
             $coveragePercent = [math]::Round(($coveredCommands / $totalCommands) * 100, 2)
