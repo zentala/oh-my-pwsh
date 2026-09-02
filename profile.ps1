@@ -64,6 +64,7 @@ if (-not (Get-Variable -Name OhMyPwsh_DisablePromptInAgentSessions -Scope Global
 }
 
 $IsAgentSession = Test-OhMyPwshAgentSession
+$global:OhMyPwsh_SilentStartupInAgentSessions = $global:OhMyPwsh_SilentStartupInAgentSessions -or $IsAgentSession
 $ShouldInitPrompt = $global:OhMyPwsh_EnablePrompt -and -not (
     $global:OhMyPwsh_DisablePromptInAgentSessions -and $IsAgentSession
 )
@@ -107,7 +108,7 @@ $OhMyStatsLocations = @(
     "C:\code\oh-my-stats\pwsh\oh-my-stats.psd1"  # Legacy hardcoded location (backward compatibility)
 )
 
-if ($global:OhMyPwsh_EnableStats) {
+if ($global:OhMyPwsh_EnableStats -and -not $IsAgentSession) {
     foreach ($location in $OhMyStatsLocations) {
         if (Test-Path $location) {
             Import-Module $location -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
@@ -224,7 +225,7 @@ if ($ShouldInitPrompt -and $global:_ProfileAvailability.Tools.'oh-my-posh') {
         Write-Verbose "oh-my-posh init skipped: $($_.Exception.Message)"
     }
     if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Oh My Posh" -Loaded $true }
-} elseif ($_ProfileCacheFresh -and $global:OhMyPwsh_EnablePrompt -and $IsAgentSession) {
+} elseif ($ShouldShowStartupHints -and $_ProfileCacheFresh -and $global:OhMyPwsh_EnablePrompt -and $IsAgentSession) {
     Write-SkippedStatus -Name "Oh My Posh" -Reason "agent session"
 } elseif ($ShouldInitPrompt) {
     Register-MissingTool -Tool "oh-my-posh"
