@@ -339,6 +339,24 @@ find pattern    # Uses fd (faster file finding)
 git diff        # Uses delta (beautiful diffs)
 ```
 
+### Power Tools
+
+Use `power` to schedule sleep, hibernate, shutdown, and restart actions, or
+temporarily prevent automatic system sleep without changing the active Windows
+power plan:
+
+```powershell
+awake                    # Toggle keep-awake mode
+awake status             # Show the current state
+awake off                # Restore normal sleep behavior
+power awake on            # Block automatic system sleep
+power                   # Interactive menu
+```
+
+The keep-awake request applies to the current PowerShell session and is cleared
+when the session exits. It does not prevent manually choosing Sleep/Hibernate,
+turn off the display, or change the Windows power-plan settings.
+
 ### Claude Code CLI (`cc`)
 
 Two namespaces: `cc blocks` (auto-trigger 5h usage blocks) and `cc plan` (schedule overnight Claude tasks).

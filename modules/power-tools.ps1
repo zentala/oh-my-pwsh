@@ -9,6 +9,8 @@
 #   power <action> <time>       Schedule action
 #   power <action> now          Execute immediately (with confirm)
 #   power status                List scheduled actions
+#   power keepawake on|off      Prevent/allow automatic system sleep
+#   power keepawake status      Show keep-awake state
 #   power cancel                Cancel all scheduled actions
 #   power cancel <id|action>    Cancel one action by id or action type
 #   power help                  Show help
@@ -28,6 +30,7 @@
 #   now         immediately
 
 $script:PowerTaskPrefix = "OhMyPwsh-Power"
+$script:PowerKeepAwakeEnabled = $false
 
 # ============================================
 # Helpers
@@ -43,6 +46,7 @@ function Resolve-PowerAction {
         '^(restart|reboot|rb|r)$'     { return 'restart' }
         '^(cancel|unpower|clear|abort|c)$' { return 'cancel' }
         '^(status|list|ls)$'          { return 'status' }
+        '^(keepawake|keep-awake|awake|stayawake|stay-awake|caffeinate)$' { return 'keepawake' }
         '^(help|--help|-h|\?)$'       { return 'help' }
         '^(menu)$'                    { return 'menu' }
         default                       { return $null }
@@ -110,6 +114,110 @@ function Invoke-PowerProcess {
     & $FilePath @ArgumentList
     return $LASTEXITCODE
 }
+
+function Invoke-PowerKeepAwakeNative {
+    <#
+    .SYNOPSIS
+    Set or clear this PowerShell process's Windows execution-state request.
+
+    .DESCRIPTION
+    Uses SetThreadExecutionState instead of changing the active power plan.
+    This keeps the normal sleep configuration intact and the request ends when
+    the PowerShell process exits. The wrapper is kept separate for safe tests.
+    #>
+    param([Parameter(Mandatory)][bool]$Enabled)
+
+    if ($env:OS -ne 'Windows_NT') {
+        return $false
+    }
+
+    $type = ([System.Management.Automation.PSTypeName]'OhMyPwshPowerKeepAwake').Type
+    if (-not $type) {
+        Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+
+public static class OhMyPwshPowerKeepAwake
+{
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern uint SetThreadExecutionState(uint esFlags);
+
+    public static bool SetState(bool enabled)
+    {
+        const uint ES_CONTINUOUS = 0x80000000;
+        const uint ES_SYSTEM_REQUIRED = 0x00000001;
+        uint flags = enabled ? ES_CONTINUOUS | ES_SYSTEM_REQUIRED : ES_CONTINUOUS;
+        return SetThreadExecutionState(flags) != 0;
+    }
+}
+"@
+        $type = ([System.Management.Automation.PSTypeName]'OhMyPwshPowerKeepAwake').Type
+    }
+
+    return $type::SetState($Enabled)
+}
+
+function Get-PowerKeepAwakeStatus {
+    return [bool]$script:PowerKeepAwakeEnabled
+}
+
+function Show-PowerKeepAwakeStatus {
+    $enabled = Get-PowerKeepAwakeStatus
+    $label = if ($enabled) { 'ON' } else { 'OFF' }
+    $role = if ($enabled) { 'success' } else { 'info' }
+    $sleepState = if ($enabled) { 'blocked' } else { 'allowed' }
+    Write-StatusMessage -Role $role -Message "Keep awake: $label (automatic system sleep is $sleepState)"
+}
+
+function Set-PowerKeepAwake {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateSet('on', 'off', 'toggle')]
+        [string]$Mode
+    )
+
+    $current = Get-PowerKeepAwakeStatus
+    $enabled = switch ($Mode) {
+        'on'     { $true }
+        'off'    { $false }
+        'toggle' { -not $current }
+    }
+
+    if ($enabled -eq $current) {
+        Show-PowerKeepAwakeStatus
+        return $true
+    }
+
+    if (-not (Invoke-PowerKeepAwakeNative -Enabled $enabled)) {
+        Write-StatusMessage -Role 'error' -Message 'Could not change keep-awake state (Windows only)'
+        return $false
+    }
+
+    $script:PowerKeepAwakeEnabled = $enabled
+    if ($enabled) {
+        Write-StatusMessage -Role 'success' -Message 'Keep awake enabled - automatic system sleep is blocked'
+    } else {
+        Write-StatusMessage -Role 'info' -Message 'Keep awake disabled - normal sleep behavior restored'
+    }
+    return $true
+}
+
+function Invoke-PowerAwake {
+    [CmdletBinding()]
+    param(
+        [ValidateSet('on', 'off', 'toggle', 'status')]
+        [string]$Mode = 'toggle'
+    )
+
+    if ($Mode -eq 'status') {
+        Show-PowerKeepAwakeStatus
+        return
+    }
+
+    Set-PowerKeepAwake -Mode $Mode | Out-Null
+}
+
+Set-Alias -Name awake -Value Invoke-PowerAwake -Scope Global -Force
 
 function Test-GsudoAvailable {
     return [bool](Get-Command gsudo -ErrorAction SilentlyContinue)
@@ -330,6 +438,7 @@ function Format-PowerDuration {
 }
 
 function Show-PowerStatus {
+    Show-PowerKeepAwakeStatus
     $schedule = Get-PowerSchedule
     if ($schedule.Count -eq 0) {
         Write-StatusMessage -Role "info" -Message "No scheduled power actions"
@@ -348,13 +457,16 @@ function Show-PowerStatus {
 
 function Show-PowerHelp {
     Write-Host ""
-    Write-Host "  power - Schedule sleep / hibernate / shutdown / restart" -ForegroundColor Cyan
+    Write-Host "  power - Schedule power actions and control keep-awake mode" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  USAGE" -ForegroundColor White
     Write-Host "    power                        Interactive menu" -ForegroundColor Gray
     Write-Host "    power <action> <time>        Schedule" -ForegroundColor Gray
     Write-Host "    power <action> now           Execute immediately" -ForegroundColor Gray
     Write-Host "    power status                 List scheduled" -ForegroundColor Gray
+    Write-Host "    power awake                 Toggle keep-awake mode" -ForegroundColor Gray
+    Write-Host "    power awake on|off|toggle   Block/allow automatic system sleep" -ForegroundColor Gray
+    Write-Host "    power awake status          Show keep-awake state" -ForegroundColor Gray
     Write-Host "    power cancel [id|action|all] Cancel scheduled" -ForegroundColor Gray
     Write-Host "    power help                   This help" -ForegroundColor Gray
     Write-Host ""
@@ -363,6 +475,7 @@ function Show-PowerHelp {
     Write-Host "    sleep       aliases: slp, s, nap" -ForegroundColor Gray
     Write-Host "    shutdown    aliases: off, shut, down" -ForegroundColor Gray
     Write-Host "    restart     aliases: reboot, rb, r" -ForegroundColor Gray
+    Write-Host "    awake       aliases: keepawake, keep-awake, stayawake, caffeinate" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  TIME FORMATS" -ForegroundColor White
     Write-Host "    60        60 minutes" -ForegroundColor Gray
@@ -376,6 +489,8 @@ function Show-PowerHelp {
     Write-Host "    power hibe 60                hibernate in 60 minutes" -ForegroundColor DarkGray
     Write-Host "    power off 23:30              shutdown at 23:30" -ForegroundColor DarkGray
     Write-Host "    power slp 1h30m              sleep in 1h30m" -ForegroundColor DarkGray
+    Write-Host "    awake                       toggle keep-awake mode" -ForegroundColor DarkGray
+    Write-Host "    awake off                   restore normal sleep behavior" -ForegroundColor DarkGray
     Write-Host "    power cancel 2               cancel scheduled action #2" -ForegroundColor DarkGray
     Write-Host "    power cancel h               cancel scheduled hibernation" -ForegroundColor DarkGray
     Write-Host ""
@@ -408,6 +523,8 @@ function Show-PowerMenu {
         "Schedule sleep"
         "Schedule shutdown"
         "Schedule restart"
+        "Enable keep awake"
+        "Disable keep awake"
         "Cancel a scheduled action"
         "Cancel all"
         "Show help"
@@ -430,6 +547,8 @@ function Show-PowerMenu {
     switch ($choice) {
         "Exit"          { return }
         "Show help"     { Show-PowerHelp; return }
+        "Enable keep awake"  { Set-PowerKeepAwake -Mode 'on' | Out-Null; return }
+        "Disable keep awake" { Set-PowerKeepAwake -Mode 'off' | Out-Null; return }
         "Cancel all"    { Remove-PowerSchedule -Target 'all'; return }
         "Cancel a scheduled action" {
             $schedule = Get-PowerSchedule
@@ -485,6 +604,28 @@ function Invoke-Power {
 
     # Normalize tokens
     $tokens = @($Args | ForEach-Object { "$_" })
+
+    # keepawake is a mode, not a schedulable power action.
+    if ((Resolve-PowerAction $tokens[0]) -eq 'keepawake') {
+        if ($tokens.Count -eq 1) {
+            if ($tokens[0].ToLower() -eq 'awake') {
+                Set-PowerKeepAwake -Mode 'toggle' | Out-Null
+            } else {
+                Show-PowerKeepAwakeStatus
+            }
+            return
+        }
+        if ($tokens.Count -eq 2 -and $tokens[1].ToLower() -in @('on', 'off', 'toggle')) {
+            Set-PowerKeepAwake -Mode $tokens[1].ToLower() | Out-Null
+            return
+        }
+        if ($tokens.Count -eq 2 -and $tokens[1].ToLower() -eq 'status') {
+            Show-PowerKeepAwakeStatus
+            return
+        }
+        Write-StatusMessage -Role 'error' -Message "Could not parse keepawake command - try 'power keepawake on|off|status'"
+        return
+    }
 
     # Single arg: status / help / cancel / action-without-time
     if ($tokens.Count -eq 1) {

@@ -25,6 +25,7 @@ Describe 'Power tools helper functions' {
                 restart   = @('restart', 'reboot', 'rb', 'r')
                 cancel    = @('cancel', 'unpower', 'clear', 'abort', 'c')
                 status    = @('status', 'list', 'ls')
+                keepawake = @('keepawake', 'keep-awake', 'awake', 'stayawake', 'stay-awake', 'caffeinate')
                 help      = @('help', '--help', '-h', '?')
                 menu      = @('menu')
             }
@@ -91,6 +92,48 @@ Describe 'Power tools helper functions' {
             Format-PowerDuration 90 | Should -Be '1h 30m'
             Format-PowerDuration 120 | Should -Be '2h'
         }
+    }
+}
+
+Describe 'Power tools keep-awake mode' {
+    BeforeEach {
+        $script:PowerKeepAwakeEnabled = $false
+        Mock Invoke-PowerKeepAwakeNative { $true }
+        Mock Write-StatusMessage {}
+    }
+
+    It 'enables, reports, toggles, and disables keep-awake without changing the power plan' {
+        Set-PowerKeepAwake -Mode 'on' | Should -BeTrue
+        Get-PowerKeepAwakeStatus | Should -BeTrue
+        Should -Invoke Invoke-PowerKeepAwakeNative -ParameterFilter { $Enabled -eq $true }
+
+        Set-PowerKeepAwake -Mode 'toggle' | Should -BeTrue
+        Get-PowerKeepAwakeStatus | Should -BeFalse
+        Should -Invoke Invoke-PowerKeepAwakeNative -ParameterFilter { $Enabled -eq $false }
+    }
+
+    It 'fails closed when Windows cannot accept the execution-state request' {
+        Mock Invoke-PowerKeepAwakeNative { $false }
+
+        Set-PowerKeepAwake -Mode 'on' | Should -BeFalse
+        Get-PowerKeepAwakeStatus | Should -BeFalse
+        Should -Invoke Write-StatusMessage -ParameterFilter { $Role -eq 'error' }
+    }
+
+    It 'does not call native code when the requested state is already active' {
+        $script:PowerKeepAwakeEnabled = $true
+
+        Set-PowerKeepAwake -Mode 'on' | Should -BeTrue
+        Should -Invoke Invoke-PowerKeepAwakeNative -Times 0
+    }
+
+    It 'supports the short standalone awake command and explicit status' {
+        Invoke-PowerAwake
+        Get-PowerKeepAwakeStatus | Should -BeTrue
+        Invoke-PowerAwake -Mode 'status'
+
+        Should -Invoke Invoke-PowerKeepAwakeNative -ParameterFilter { $Enabled -eq $true }
+        Should -Invoke Write-StatusMessage -Times 2
     }
 }
 
@@ -297,6 +340,8 @@ Describe 'Power command dispatcher' {
         Mock New-PowerSchedule {}
         Mock Remove-PowerSchedule {}
         Mock Invoke-PowerNow {}
+        Mock Set-PowerKeepAwake {}
+        Mock Show-PowerKeepAwakeStatus {}
         Mock Write-StatusMessage {}
     }
 
@@ -333,6 +378,19 @@ Describe 'Power command dispatcher' {
         Should -Invoke New-PowerSchedule -Times 1 -ParameterFilter { $Action -eq 'restart' -and $Minutes -eq 0 }
     }
 
+    It 'routes keepawake mode commands separately from scheduled actions' {
+        Invoke-Power keepawake on
+        Invoke-Power awake off
+        Invoke-Power keepawake toggle
+        Invoke-Power keepawake status
+        Invoke-Power keepawake
+        Invoke-Power awake
+
+        Should -Invoke Set-PowerKeepAwake -Times 4
+        Should -Invoke Show-PowerKeepAwakeStatus -Times 2
+        Should -Invoke New-PowerSchedule -Times 0
+    }
+
     It 'reports unknown, invalid, and too-many arguments without side effects' {
         Invoke-Power unknown
         Invoke-Power hibernate invalid
@@ -352,27 +410,31 @@ Describe 'Power tools menu' {
             (New-PowerScheduleDouble 2 'OhMyPwsh-Power-sleep-b' 'sleep' ([datetime]'2026-09-02T14:00:00'))
         )
         $script:menuScheduled = [System.Collections.Generic.List[string]]::new()
+        $script:menuKeepAwake = [System.Collections.Generic.List[string]]::new()
         $script:menuRemoved = [System.Collections.Generic.List[string]]::new()
         $script:menuHelpShown = 0
         Mock Show-PowerStatus {}
         Mock Get-PowerSchedule { $script:menuSchedule }
         Mock New-PowerSchedule { $script:menuScheduled.Add("$Action/$Minutes") }
+        Mock Set-PowerKeepAwake { $script:menuKeepAwake.Add([string]$Mode) }
         Mock Remove-PowerSchedule { $script:menuRemoved.Add([string]$Target) }
         Mock Show-PowerHelp { $script:menuHelpShown++ }
         Mock Write-StatusMessage {}
         Mock Test-SpectreAvailable { $false }
     }
 
-    It 'routes all eight fallback choices and exits safely' {
+    It 'routes all ten fallback choices and exits safely' {
         $cases = @(
             @{ Choice = '1'; Responses = @('1', '45'); Expected = 'hibernate/45' }
             @{ Choice = '2'; Responses = @('2', '1h'); Expected = 'sleep/60' }
             @{ Choice = '3'; Responses = @('3', '90m'); Expected = 'shutdown/90' }
             @{ Choice = '4'; Responses = @('4', 'now'); Expected = 'restart/0' }
-            @{ Choice = '5'; Responses = @('5', '2'); Expected = 'remove/2' }
-            @{ Choice = '6'; Responses = @('6'); Expected = 'remove/all' }
-            @{ Choice = '7'; Responses = @('7'); Expected = 'help' }
-            @{ Choice = '8'; Responses = @('8'); Expected = 'exit' }
+            @{ Choice = '5'; Responses = @('5'); Expected = 'keepawake/on' }
+            @{ Choice = '6'; Responses = @('6'); Expected = 'keepawake/off' }
+            @{ Choice = '7'; Responses = @('7', '2'); Expected = 'remove/2' }
+            @{ Choice = '8'; Responses = @('8'); Expected = 'remove/all' }
+            @{ Choice = '9'; Responses = @('9'); Expected = 'help' }
+            @{ Choice = '10'; Responses = @('10'); Expected = 'exit' }
         )
 
         foreach ($case in $cases) {
@@ -383,11 +445,13 @@ Describe 'Power tools menu' {
 
             switch -Regex ($case.Expected) {
                 '^hibernate|^sleep|^shutdown|^restart' { $script:menuScheduled | Should -Contain $case.Expected }
+                '^keepawake/' { $script:menuKeepAwake | Should -Contain ($case.Expected -replace '^keepawake/', '') }
                 '^remove/' { $script:menuRemoved | Should -Contain ($case.Expected -replace '^remove/', '') }
                 '^help$' { $script:menuHelpShown | Should -Be 1 }
                 '^exit$' { $script:menuScheduled | Should -HaveCount 0; $script:menuRemoved | Should -HaveCount 0 }
             }
             $script:menuScheduled.Clear()
+            $script:menuKeepAwake.Clear()
             $script:menuRemoved.Clear()
         }
     }
@@ -395,7 +459,7 @@ Describe 'Power tools menu' {
     It 'does not prompt for an item when the fallback schedule is empty' {
         Mock Get-PowerSchedule { @() }
         $script:menuResponses = [System.Collections.Generic.Queue[string]]::new()
-        $menuResponses.Enqueue('5')
+        $menuResponses.Enqueue('7')
         Mock Read-Host { $script:menuResponses.Dequeue() }
 
         Show-PowerMenu
