@@ -129,6 +129,24 @@ Describe "Profile Loading - E2E Smoke Test" -Tag @('E2E', 'Smoke') {
             ($output | Where-Object { $_ -match 'Failed to write init script|Show-SystemStats|Export-Clixml' }) |
                 Should -BeNullOrEmpty -Because "agent sessions should avoid known noisy startup failures"
         }
+
+        It "Does not render stats or startup hints in agent sessions" {
+            $output = & pwsh -NoProfile -Command {
+                param($profilePath)
+
+                $env:CODEX_CI = '1'
+                $env:TERM = 'dumb'
+                $WarningPreference = 'SilentlyContinue'
+                $InformationPreference = 'SilentlyContinue'
+                $VerbosePreference = 'SilentlyContinue'
+
+                . $profilePath
+                Write-Output "SUCCESS"
+            } -args $script:profileScript 2>&1 | Out-String
+
+            $output | Should -Match 'SUCCESS'
+            $output | Should -Not -Match 'RAM|CPU|HDD|missing:|Type help|Oh My Posh'
+        }
     }
 
     Context "Performance" {

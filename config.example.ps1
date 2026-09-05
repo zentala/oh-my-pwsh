@@ -86,7 +86,7 @@ $global:OhMyPwsh_DisablePromptInAgentSessions = $true
 $global:OhMyPwsh_DisableFnmInAgentSessions = $true
 
 # Keep startup output minimal in automation/agent sessions
-$global:OhMyPwsh_SilentStartupInAgentSessions = $false
+$global:OhMyPwsh_SilentStartupInAgentSessions = $true
 
 # Disable fastfetch at startup (set to $false to enable)
 $global:DisableFastfetch = $true

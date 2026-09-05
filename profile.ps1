@@ -64,6 +64,7 @@ if (-not (Get-Variable -Name OhMyPwsh_DisablePromptInAgentSessions -Scope Global
 }
 
 $IsAgentSession = Test-OhMyPwshAgentSession
+$global:OhMyPwsh_SilentStartupInAgentSessions = $global:OhMyPwsh_SilentStartupInAgentSessions -or $IsAgentSession
 $ShouldInitPrompt = $global:OhMyPwsh_EnablePrompt -and -not (
     $global:OhMyPwsh_DisablePromptInAgentSessions -and $IsAgentSession
 )
@@ -89,6 +90,10 @@ $ShouldShowStartupHints = -not ($global:OhMyPwsh_SilentStartupInAgentSessions -a
 # ============================================
 . "$ProfileRoot\modules\profile-cache.ps1"
 $global:_ProfileAvailability = Get-ToolAvailability
+
+# Three states, not two. $true = these numbers were just measured, $false = they come from
+# a valid cache, $null = nobody knows yet, a refresh is running. Readers that only test for
+# truth keep working; anything reporting the tool list must tell $false and $null apart.
 $global:_ProfileCacheFresh = $global:_ProfileAvailability.Fresh
 
 # ============================================
@@ -103,7 +108,7 @@ $OhMyStatsLocations = @(
     "C:\code\oh-my-stats\pwsh\oh-my-stats.psd1"  # Legacy hardcoded location (backward compatibility)
 )
 
-if ($global:OhMyPwsh_EnableStats) {
+if ($global:OhMyPwsh_EnableStats -and -not $IsAgentSession) {
     foreach ($location in $OhMyStatsLocations) {
         if (Test-Path $location) {
             Import-Module $location -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
@@ -148,7 +153,7 @@ if ($global:_ProfileAvailability.Tools.fzf) {
         if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSFzf" -Loaded $false }
     }
 } else {
-    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "fzf" -Description "fuzzy finder" -InstallCommand "winget install fzf" }
+    Register-MissingTool -Tool "fzf"
 }
 
 # zoxide - use cached availability to skip Get-Command
@@ -168,7 +173,7 @@ if ($global:_ProfileAvailability.Tools.zoxide) {
         Write-SkippedStatus -Name "zoxide" -Reason "disabled in config"
     }
 } else {
-    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "zoxide" -Description "smart directory jumping" -InstallCommand "winget install ajeetdsouza.zoxide" }
+    Register-MissingTool -Tool "zoxide"
 }
 
 # fnm - per-project Node version via .nvmrc/.node-version, per-shell (not global like nvm-windows)
@@ -176,7 +181,7 @@ if ($global:_ProfileAvailability.Tools.fnm) {
     fnm env --use-on-cd | Out-String | Invoke-Expression
     if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "fnm" -Loaded $true -Description "auto Node per .nvmrc" }
 } else {
-    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "fnm" -Description "per-project Node version" -InstallCommand "winget install Schniz.fnm" }
+    Register-MissingTool -Tool "fnm"
 }
 
 # ============================================
@@ -184,6 +189,7 @@ if ($global:_ProfileAvailability.Tools.fnm) {
 # ============================================
 
 # Core modules
+. "$ProfileRoot\modules\proxy-guard.ps1"       # clear dead HTTP_PROXY/HTTPS_PROXY before anything uses them
 . "$ProfileRoot\modules\environment.ps1"
 . "$ProfileRoot\modules\psreadline.ps1"
 . "$ProfileRoot\modules\functions.ps1"
@@ -195,7 +201,7 @@ if ($global:_ProfileAvailability.Tools.fnm) {
 . "$ProfileRoot\modules\help-system.ps1"       # Custom help command
 . "$ProfileRoot\modules\nerd-fonts.ps1"        # Nerd Fonts detection and installer
 . "$ProfileRoot\modules\power-tools.ps1"       # Unified `power` command - schedule sleep/hibernate/shutdown
-. "$ProfileRoot\modules\cc\main.ps1"           # Claude Code CLI (cc blocks + cc plan)
+. "$ProfileRoot\modules\cc\main.ps1"           # Claude Code CLI (cc plan)
 . "$ProfileRoot\modules\ssh-sleep-blocker\main.ps1"  # Keep Windows awake during SSH sessions
 
 # Legacy aliases (deprecated - use linux-compat.ps1 instead)
@@ -208,12 +214,9 @@ if ($global:_ProfileAvailability.Tools.fnm) {
 if ($ShouldInitPrompt -and $global:_ProfileAvailability.Tools.'oh-my-posh') {
     $omp_config = "$ProfileRoot\themes\quick-term.omp.json"
     try {
-        if (Test-Path $omp_config) {
-            $ompInit = oh-my-posh init pwsh --config $omp_config 2>$null | Out-String
-        } else {
-            # Use oh-my-posh's default theme (don't try to fetch from GitHub)
-            $ompInit = oh-my-posh init pwsh 2>$null | Out-String
-        }
+        # Cached: the init script only changes with the theme or the binary, and asking
+        # oh-my-posh for it costs a process spawn (~350ms) on every single shell start.
+        $ompInit = Get-OhMyPoshInitScript -ConfigPath $omp_config
 
         if (-not [string]::IsNullOrWhiteSpace($ompInit)) {
             Invoke-Expression $ompInit
@@ -222,21 +225,26 @@ if ($ShouldInitPrompt -and $global:_ProfileAvailability.Tools.'oh-my-posh') {
         Write-Verbose "oh-my-posh init skipped: $($_.Exception.Message)"
     }
     if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Oh My Posh" -Loaded $true }
-} elseif ($_ProfileCacheFresh -and $global:OhMyPwsh_EnablePrompt -and $IsAgentSession) {
+} elseif ($ShouldShowStartupHints -and $_ProfileCacheFresh -and $global:OhMyPwsh_EnablePrompt -and $IsAgentSession) {
     Write-SkippedStatus -Name "Oh My Posh" -Reason "agent session"
 } elseif ($ShouldInitPrompt) {
-    if ($_ProfileCacheFresh) { Write-InstallHint -Tool "oh-my-posh" -Description "prompt theme" -InstallCommand "winget install JanDeDobbeleer.OhMyPosh" }
+    Register-MissingTool -Tool "oh-my-posh"
 }
 
 # PSReadLine
 if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSReadLine" -Loaded ([bool](Get-Module PSReadLine)) }
 
-# Nerd Fonts check (informational only)
-if ($_ProfileCacheFresh) {
-    $nfCheck = Test-NerdFontInstalled
-    if (-not $nfCheck.Installed) {
-        Write-InstallHint -Tool "Nerd Fonts" -Description "better terminal icons" -InstallCommand "Install-NerdFonts"
-    }
+# Nerd Fonts check - read from the cache. Asking the font registry directly costs ~350ms,
+# and a missing NerdFonts key means "not measured yet", which must not read as "missing".
+$nfCached = $global:_ProfileAvailability.NerdFonts
+if ($ShouldShowStartupHints -and $null -ne $nfCached -and -not $nfCached.Installed) {
+    Write-InstallHint -Tool "Nerd Fonts" -Description "better terminal icons" -InstallCommand "Install-NerdFonts"
+}
+
+# One line for every missing tool, then one line if the list itself is not final.
+if ($ShouldShowStartupHints) {
+    Write-MissingToolsHint
+    Write-ProfileCacheNotice -Availability $global:_ProfileAvailability
 }
 
 if ($_ProfileCacheFresh -and $ShouldShowStartupHints) { Write-Host "" }  # Empty line after all modules

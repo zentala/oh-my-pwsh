@@ -23,15 +23,6 @@ was still registered months later and had to be removed by hand
 - Add `cc plan prune` to sweep any `cc-plan-*` task whose plan file is
   `completed`/past and whose `NextRun` is empty.
 
-## Related — name mismatch in blocks scheduler (low, deprecated code)
-`modules/cc/main.ps1`: `_cc_register_task` creates/manages the task named
-`cc-blocks` (`$script:CcTaskName`, line 12), but `_cc_migrate_from_ccblocks`
-(line 158) looks for the old `ccblocks` and never removes it. Running
-`cc blocks setup` could therefore leave **two** tasks. Currently inert:
-`cc blocks` is deprecated and the `ccblocks` task was removed by hand
-(2026-07-31). Fix only if `cc blocks` is ever revived — unify on one task name
-and make setup remove the legacy `ccblocks`.
-
 ## Acceptance Criteria
 - A completed `cc plan` run leaves no lingering task in Task Scheduler.
 - `cc plan prune` removes already-orphaned `cc-plan-*` entries.
