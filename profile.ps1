@@ -142,15 +142,20 @@ if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "Terminal Icons" -Loaded ([b
 Import-Module posh-git -ErrorAction SilentlyContinue
 if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "posh-git" -Loaded ([bool](Get-Module posh-git)) }
 
-# PSFzf - use cached availability to skip Get-Command
-if ($global:_ProfileAvailability.Tools.fzf) {
-    Import-Module PSFzf -ErrorAction SilentlyContinue
-    if (Get-Module PSFzf) {
-        Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
-        Set-PsFzfOption -EnableAliasFuzzyGitStatus
-        if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSFzf" -Loaded $true -Description "Ctrl+R, Ctrl+T" }
-    } else {
-        if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSFzf" -Loaded $false }
+# PSFzf - verify live availability; the cached value may be stale across sessions
+if ($global:_ProfileAvailability.Tools.fzf -and (Get-Command fzf -ErrorAction SilentlyContinue)) {
+    try {
+        Import-Module PSFzf -ErrorAction Stop
+        if (Get-Module PSFzf) {
+            Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r' -ErrorAction Stop
+            Set-PsFzfOption -EnableAliasFuzzyGitStatus -ErrorAction Stop
+            if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSFzf" -Loaded $true -Description "Ctrl+R, Ctrl+T" }
+        } else {
+            if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "PSFzf" -Loaded $false }
+        }
+    } catch {
+        Write-Verbose "PSFzf init skipped: $($_.Exception.Message)"
+        if ($_ProfileCacheFresh) { Write-SkippedStatus -Name "PSFzf" -Reason "init failed" }
     }
 } else {
     Register-MissingTool -Tool "fzf"
@@ -177,9 +182,17 @@ if ($global:_ProfileAvailability.Tools.zoxide) {
 }
 
 # fnm - per-project Node version via .nvmrc/.node-version, per-shell (not global like nvm-windows)
-if ($global:_ProfileAvailability.Tools.fnm) {
-    fnm env --use-on-cd | Out-String | Invoke-Expression
-    if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "fnm" -Loaded $true -Description "auto Node per .nvmrc" }
+if ($global:_ProfileAvailability.Tools.fnm -and (Get-Command fnm -ErrorAction SilentlyContinue)) {
+    try {
+        $fnmEnv = fnm env --use-on-cd 2>$null | Out-String
+        if (-not [string]::IsNullOrWhiteSpace($fnmEnv)) {
+            Invoke-Expression $fnmEnv
+        }
+        if ($_ProfileCacheFresh) { Write-ModuleStatus -Name "fnm" -Loaded $true -Description "auto Node per .nvmrc" }
+    } catch {
+        Write-Verbose "fnm init skipped: $($_.Exception.Message)"
+        if ($_ProfileCacheFresh) { Write-SkippedStatus -Name "fnm" -Reason "init failed" }
+    }
 } else {
     Register-MissingTool -Tool "fnm"
 }
