@@ -9,6 +9,7 @@ Describe "Profile Loading - E2E Smoke Test" -Tag @('E2E', 'Smoke') {
 
     Context "When loading profile with all tools available" {
         It "Loads without throwing errors" {
+            if (-not $IsWindows) { Set-ItResult -Skipped -Because 'Profile E2E smoke tests target Windows environment' }
             {
                 # Create isolated session
                 $output = & pwsh -NoProfile -Command {
@@ -39,6 +40,7 @@ Describe "Profile Loading - E2E Smoke Test" -Tag @('E2E', 'Smoke') {
 
     Context "When loading profile with NO enhanced tools (regression test)" {
         It "Loads without errors when enhanced tools are missing" {
+            if (-not $IsWindows) { Set-ItResult -Skipped -Because 'Profile E2E smoke tests target Windows environment' }
             {
                 $output = & pwsh -NoProfile -Command {
                     param($profilePath)
@@ -82,6 +84,7 @@ Describe "Profile Loading - E2E Smoke Test" -Tag @('E2E', 'Smoke') {
 
     Context "Zero-Error Philosophy" {
         It "Does not write to error stream during normal load" {
+            if (-not $IsWindows) { Set-ItResult -Skipped -Because 'Profile E2E smoke tests target Windows environment' }
             $errors = & pwsh -NoProfile -Command {
                 param($profilePath)
 
@@ -107,6 +110,7 @@ Describe "Profile Loading - E2E Smoke Test" -Tag @('E2E', 'Smoke') {
 
     Context "Agent and automation sessions" {
         It "Skips prompt-heavy integrations without noisy startup errors" {
+            if (-not $IsWindows) { Set-ItResult -Skipped -Because 'Profile E2E smoke tests target Windows environment' }
             $output = & pwsh -NoProfile -Command {
                 param($profilePath)
 
@@ -131,6 +135,7 @@ Describe "Profile Loading - E2E Smoke Test" -Tag @('E2E', 'Smoke') {
         }
 
         It "Does not render stats or startup hints in agent sessions" {
+            if (-not $IsWindows) { Set-ItResult -Skipped -Because 'Profile E2E smoke tests target Windows environment' }
             $output = & pwsh -NoProfile -Command {
                 param($profilePath)
 
@@ -151,6 +156,7 @@ Describe "Profile Loading - E2E Smoke Test" -Tag @('E2E', 'Smoke') {
 
     Context "Performance" {
         It "Loads in under 10 seconds" {
+            if (-not $IsWindows) { Set-ItResult -Skipped -Because 'Profile E2E smoke tests target Windows environment' }
             $elapsed = Measure-Command {
                 & pwsh -NoProfile -Command {
                     param($profilePath)

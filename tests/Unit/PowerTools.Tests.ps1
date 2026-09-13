@@ -1,12 +1,6 @@
 #Requires -Modules Pester
 
 BeforeAll {
-    # Stub Windows-only Task Scheduler cmdlets on non-Windows so Pester can mock them.
-    if (-not $IsWindows) {
-        function global:Get-ScheduledTask { throw 'Get-ScheduledTask is only available on Windows' }
-        function global:Get-ScheduledTaskInfo { throw 'Get-ScheduledTaskInfo is only available on Windows' }
-    }
-
     . "$PSScriptRoot/../../settings/icons.ps1"
     . "$PSScriptRoot/../../modules/status-output.ps1"
     . "$PSScriptRoot/../../modules/power-tools.ps1"
@@ -179,6 +173,7 @@ Describe 'Power tools external safety boundary' {
     }
 }
 
+if ($IsWindows) {
 Describe 'Get-PowerSchedule' {
     BeforeEach {
         $script:powerNow = [datetime]'2026-09-02T12:00:00'
@@ -262,7 +257,9 @@ Describe 'Get-PowerSchedule' {
         Should -Invoke Write-StatusMessage -ParameterFilter { $Message -eq 'Time must be >= 0' }
     }
 }
+}
 
+if ($IsWindows) {
 Describe 'Remove-PowerSchedule' {
     BeforeEach {
         $script:powerSchedule = @(
@@ -336,6 +333,7 @@ Describe 'Remove-PowerSchedule' {
         $script:deletedPowerCommands | Should -HaveCount 0
         Should -Invoke Write-StatusMessage -Times 3
     }
+}
 }
 
 Describe 'Power command dispatcher' {
