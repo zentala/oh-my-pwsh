@@ -1,4 +1,15 @@
 BeforeAll {
+    # Stub Windows-only Task Scheduler cmdlets on non-Windows so Pester can mock them.
+    if (-not $IsWindows) {
+        function global:Get-ScheduledTask { throw 'Get-ScheduledTask is only available on Windows' }
+        function global:Unregister-ScheduledTask { throw 'Unregister-ScheduledTask is only available on Windows' }
+        function global:Stop-ScheduledTask { throw 'Stop-ScheduledTask is only available on Windows' }
+        function global:Register-ScheduledTask { throw 'Register-ScheduledTask is only available on Windows' }
+        function global:New-ScheduledTaskAction { throw 'New-ScheduledTaskAction is only available on Windows' }
+        function global:New-ScheduledTaskTrigger { throw 'New-ScheduledTaskTrigger is only available on Windows' }
+        function global:New-ScheduledTaskSettingsSet { throw 'New-ScheduledTaskSettingsSet is only available on Windows' }
+    }
+
     # Mock migration before sourcing (prevent real filesystem side effects)
     Mock Get-ScheduledTask { $null }
 

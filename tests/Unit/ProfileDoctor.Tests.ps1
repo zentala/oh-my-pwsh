@@ -1,4 +1,9 @@
 BeforeAll {
+    # Stub Windows-only cmdlets on non-Windows so Pester can mock them.
+    if (-not $IsWindows) {
+        function global:Get-CimInstance { throw 'Get-CimInstance is only available on Windows' }
+    }
+
     . $PSScriptRoot/../../settings/icons.ps1
     . $PSScriptRoot/../../modules/status-output.ps1
     . $PSScriptRoot/../../modules/logger.ps1

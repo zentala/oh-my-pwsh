@@ -44,6 +44,11 @@ function _cc_plan_auto_time {
 function _cc_plan_register_task {
     param([hashtable]$Plan)
 
+    if (-not $IsWindows) {
+        _cc_warn 'Task Scheduler is only available on Windows; plan JSON saved but not registered'
+        return
+    }
+
     $daemonPath = (Resolve-Path $script:CcPlanDaemonScript).Path
     $planFile = Join-Path $script:CcPlansDir "plan-$($Plan.id).json"
 
@@ -301,14 +306,16 @@ function _cc_plan_cancel {
         return
     }
 
-    # Unregister Task Scheduler task
-    $taskName = "$($script:CcPlanTaskPrefix)$Id"
-    $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    if ($task) {
-        if ($task.State -eq 'Running') {
-            Stop-ScheduledTask -TaskName $taskName
+    # Unregister Task Scheduler task (Windows only)
+    if ($IsWindows) {
+        $taskName = "$($script:CcPlanTaskPrefix)$Id"
+        $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        if ($task) {
+            if ($task.State -eq 'Running') {
+                Stop-ScheduledTask -TaskName $taskName
+            }
+            Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
         }
-        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
     }
 
     # Update status
@@ -335,10 +342,12 @@ function _cc_plan_clean {
                 Remove-Item $outputFile -Force -ErrorAction SilentlyContinue
                 Remove-Item $logFile -Force -ErrorAction SilentlyContinue
 
-                # Clean up task if still registered
-                $taskName = "$($script:CcPlanTaskPrefix)$($p.id)"
-                $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-                if ($task) { Unregister-ScheduledTask -TaskName $taskName -Confirm:$false }
+                # Clean up task if still registered (Windows only)
+                if ($IsWindows) {
+                    $taskName = "$($script:CcPlanTaskPrefix)$($p.id)"
+                    $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+                    if ($task) { Unregister-ScheduledTask -TaskName $taskName -Confirm:$false }
+                }
 
                 $removed++
             }

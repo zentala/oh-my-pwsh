@@ -1,6 +1,12 @@
 #Requires -Modules Pester
 
 BeforeAll {
+    # Stub Windows-only Task Scheduler cmdlets on non-Windows so Pester can mock them.
+    if (-not $IsWindows) {
+        function global:Get-ScheduledTask { throw 'Get-ScheduledTask is only available on Windows' }
+        function global:Get-ScheduledTaskInfo { throw 'Get-ScheduledTaskInfo is only available on Windows' }
+    }
+
     . "$PSScriptRoot/../../settings/icons.ps1"
     . "$PSScriptRoot/../../modules/status-output.ps1"
     . "$PSScriptRoot/../../modules/power-tools.ps1"

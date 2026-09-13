@@ -113,7 +113,7 @@ function Get-ProfileDoctorChecks {
 
     return [PSCustomObject]@{
         AgentSession = $env:CODEX_CI -eq '1' -or $env:TERM -eq 'dumb'
-        WmiAvailable = [bool](Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue)
+        WmiAvailable = $IsWindows -and [bool](Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue)
         Commands = [PSCustomObject]@{
             Fnm = [bool](Get-Command fnm -ErrorAction SilentlyContinue)
             OhMyPosh = [bool](Get-Command oh-my-posh -ErrorAction SilentlyContinue)
