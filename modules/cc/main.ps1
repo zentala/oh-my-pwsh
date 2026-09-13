@@ -4,7 +4,7 @@
 # ============================================
 
 # ── Config paths ─────────────────────────────────────────────────────────────
-$script:CcConfigDir        = Join-Path $env:APPDATA 'cc'
+$script:CcConfigDir        = if ($IsWindows) { Join-Path $env:APPDATA 'cc' } else { Join-Path $env:HOME '.config/cc' }
 $script:CcPlansDir         = Join-Path $script:CcConfigDir 'plans'
 $script:CcPlanDaemonScript = Join-Path $PSScriptRoot '..\..\scripts\cc\plan-daemon.ps1'
 $script:CcPlanTaskPrefix   = 'cc-plan-'
