@@ -3,104 +3,21 @@ name: Tests
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.plan/**'
+    paths-ignore: ["**.md", "docs/**", ".plan/**", "README*", "LICENSE", "CHANGELOG*"]
   pull_request:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.plan/**'
+    paths-ignore: ["**.md", "docs/**", ".plan/**", "README*", "LICENSE", "CHANGELOG*"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Display PowerShell version
-        shell: pwsh
-        run: |
-          $PSVersionTable
-          Write-Host "PowerShell $($PSVersionTable.PSVersion) on $($PSVersionTable.OS)"
-
-      - name: Cache PowerShell modules
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.local/share/powershell/Modules
-            ~/Documents/PowerShell/Modules
-          key: ${{ runner.os }}-psmodules-${{ hashFiles('**/Install-*.ps1') }}
-          restore-keys: |
-            ${{ runner.os }}-psmodules-
-
-      - name: Install test dependencies
-        shell: pwsh
-        run: |
-          Write-Host "Installing Pester..." -ForegroundColor Cyan
-          ./scripts/Install-TestDeps.ps1
-
-      - name: Install PSScriptAnalyzer
-        shell: pwsh
-        run: |
-          Write-Host "Installing PSScriptAnalyzer..." -ForegroundColor Cyan
-          ./scripts/Install-PSScriptAnalyzer.ps1
-
-      - name: Run linter
-        shell: pwsh
-        run: |
-          Write-Host "Running PSScriptAnalyzer..." -ForegroundColor Cyan
-          ./scripts/Invoke-Linter.ps1
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Run tests with coverage
-        shell: pwsh
-        run: |
-          Write-Host "Running tests with coverage..." -ForegroundColor Cyan
-          $ErrorActionPreference = 'Continue'
-          ./scripts/Invoke-Tests.ps1 -Coverage
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Display coverage report
-        shell: pwsh
-        run: |
-          Write-Host "Coverage Report:" -ForegroundColor Cyan
-          ./scripts/Show-Coverage.ps1
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: coverage-${{ matrix.os }}
-          path: tests/Coverage/coverage.xml
-          retention-days: 30
-
-      - name: Check coverage threshold
-        shell: pwsh
-        run: |
-          $coverageFile = "tests/Coverage/coverage.xml"
-          if (Test-Path $coverageFile) {
-            [xml]$coverage = Get-Content $coverageFile
-            $lineCoverage = $coverage.report.counter | Where-Object { $_.type -eq 'LINE' }
-            $covered = [int]$lineCoverage.covered
-            $missed = [int]$lineCoverage.missed
-            $total = $covered + $missed
-            $percent = [math]::Round(($covered / $total) * 100, 2)
-
-            Write-Host "Coverage: $percent% ($covered/$total lines)" -ForegroundColor $(if ($percent -ge 75) { 'Green' } else { 'Yellow' })
-
-            # Fail if coverage is below 30% (critical threshold)
-            if ($percent -lt 30) {
-              Write-Error "Coverage $percent% is below critical threshold of 30%"
-              exit 1
-            }
-          }
+    uses: zentala/.github/.github/workflows/reusable-pwsh-ci.yml@main
+    with:
+      test-path: './tests/'
+      lint-path: '.'
+      lint-exclude-rules: 'PSAvoidUsingWriteHost,PSAvoidUsingCmdletAliases,PSAvoidUsingPositionalParameters,PSAvoidGlobalVars,PSAvoidUsingInvokeExpression,PSUseBOMForUnicodeEncodedFile,PSAvoidAssignmentToAutomaticVariable,PSAvoidUsingEmptyCatchBlock,PSUseSingularNouns,PSUseShouldProcessForStateChangingFunctions'
+      pester-min-version: '5.5.0'
+      os-matrix: '["ubuntu-latest", "windows-latest"]'
